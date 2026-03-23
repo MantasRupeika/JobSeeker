@@ -11,15 +11,18 @@
 		<section class="auth-card" aria-labelledby="login-heading">
 			<h1 id="login-heading">Sign In</h1>
 			<p class="auth-subtitle">Access your JobSeeker account to continue.</p>
+			<p class="form-feedback" role="status" aria-live="polite"></p>
 
-			<form class="auth-form" action="#" method="post">
+			<form id="loginForm" class="auth-form" action="#" method="post" novalidate>
 				<div class="form-row">
 					<label for="email">Email</label>
+					<p class="field-error" id="emailError"></p>
 					<input id="email" name="email" type="email" autocomplete="email" required>
 				</div>
 
 				<div class="form-row">
 					<label for="password">Password</label>
+					<p class="field-error" id="passwordError"></p>
 					<input id="password" name="password" type="password" autocomplete="current-password" required>
 				</div>
 
@@ -31,5 +34,6 @@
 			<p class="auth-switch">Don't have an account? <a href="registration.html">Create one</a></p>
 		</section>
 	</main>
+	<script src="validation.js"></script>
 </body>
 </html>

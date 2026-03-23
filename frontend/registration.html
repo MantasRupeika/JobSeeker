@@ -11,30 +11,36 @@
     <section class="auth-card" aria-labelledby="registration-heading">
       <h1 id="registration-heading">Create Account</h1>
       <p class="auth-subtitle">Sign up to start applying for jobs with JobSeeker.</p>
+	  <p class="form-feedback" role="status" aria-live="polite"></p>
 
-      <form class="auth-form" action="#" method="post">
+      <form id="registrationForm" class="auth-form" action="#" method="post" novalidate>
         <div class="form-row">
           <label for="fullName">Full Name</label>
+          <p class="field-error" id="fullNameError"></p>
           <input id="fullName" name="fullName" type="text" autocomplete="name" required>
         </div>
 
         <div class="form-row">
           <label for="homeAddress">Home Address</label>
+          <p class="field-error" id="homeAddressError"></p>
           <input id="homeAddress" name="homeAddress" type="text" autocomplete="street-address" required>
         </div>
 
         <div class="form-row">
           <label for="email">Email</label>
+          <p class="field-error" id="emailError"></p>
           <input id="email" name="email" type="email" autocomplete="email" required>
         </div>
 
         <div class="form-row">
           <label for="password">Password</label>
-          <input id="password" name="password" type="password" autocomplete="new-password" required>
+          <p class="field-error" id="passwordError"></p>
+          <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
         </div>
 
         <div class="form-row">
           <label for="confirmPassword">Confirm Password</label>
+          <p class="field-error" id="confirmPasswordError"></p>
           <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required>
         </div>
 
@@ -46,5 +52,6 @@
       <p class="auth-switch">Already have an account? <a href="login.html">Sign in</a></p>
     </section>
   </main>
+  <script src="validation.js"></script>
 </body>
 </html>

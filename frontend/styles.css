@@ -57,6 +57,13 @@ body.auth-page {
   color: var(--muted);
 }
 
+.form-feedback {
+  min-height: 1.15rem;
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: #0a6b8f;
+}
+
 .auth-form {
   display: grid;
   gap: 14px;
@@ -70,6 +77,13 @@ body.auth-page {
 .form-row label {
   font-size: 0.95rem;
   font-weight: 500;
+}
+
+.field-error {
+  min-height: 1rem;
+  margin: 0;
+  font-size: 0.82rem;
+  color: #b13224;
 }
 
 .form-row input {
@@ -86,6 +100,11 @@ body.auth-page {
   outline: none;
   border-color: var(--focus);
   box-shadow: 0 0 0 3px rgba(11, 127, 171, 0.2);
+}
+
+.form-row input.invalid {
+  border-color: #c13e2f;
+  box-shadow: 0 0 0 3px rgba(193, 62, 47, 0.16);
 }
 
 .form-row button {
