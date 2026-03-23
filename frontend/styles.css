@@ -64,6 +64,14 @@ body.auth-page {
   color: #0a6b8f;
 }
 
+.form-feedback.is-error {
+  color: #b13224;
+}
+
+.form-feedback.is-success {
+  color: #227346;
+}
+
 .auth-form {
   display: grid;
   gap: 14px;
@@ -128,6 +136,13 @@ body.auth-page {
 
 .form-row button:active {
   transform: translateY(0);
+}
+
+.form-row button:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .auth-switch {

@@ -4,8 +4,113 @@
     return;
   }
 
+  var API_BASE_URL = window.API_BASE_URL || "http://localhost:3000";
+  var TOKEN_STORAGE_KEY = "jobseeker_jwt";
   var feedback = document.querySelector(".form-feedback");
   var fields = Array.prototype.slice.call(form.querySelectorAll("input"));
+  var submitButton = form.querySelector("button[type='submit']");
+
+  function setFeedback(message, type) {
+    if (!feedback) {
+      return;
+    }
+
+    feedback.textContent = message || "";
+    feedback.classList.remove("is-error", "is-success");
+
+    if (type === "error") {
+      feedback.classList.add("is-error");
+    }
+
+    if (type === "success") {
+      feedback.classList.add("is-success");
+    }
+  }
+
+  function setSubmittingState(isSubmitting) {
+    if (!submitButton) {
+      return;
+    }
+
+    submitButton.disabled = isSubmitting;
+    submitButton.textContent = isSubmitting
+      ? "Please wait..."
+      : form.id === "registrationForm"
+        ? "Register"
+        : "Login";
+  }
+
+  function saveToken(token) {
+    if (!token) {
+      return;
+    }
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  }
+
+  async function apiPost(path, payload) {
+    var response = await fetch(API_BASE_URL + path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    var data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      data = {};
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || "Request failed. Please try again.");
+    }
+
+    return data;
+  }
+
+  async function handleLoginSubmit() {
+    var email = document.getElementById("email").value.trim();
+    var password = document.getElementById("password").value;
+
+    var data = await apiPost("/api/auth/login", {
+      email: email,
+      password: password
+    });
+
+    if (!data.token) {
+      throw new Error("Login succeeded but no token was returned.");
+    }
+
+    saveToken(data.token);
+    setFeedback("Login successful. JWT saved in local storage.", "success");
+  }
+
+  async function handleRegistrationSubmit() {
+    var email = document.getElementById("email").value.trim();
+    var password = document.getElementById("password").value;
+    var fullName = document.getElementById("fullName").value.trim();
+
+    await apiPost("/api/auth/register", {
+      email: email,
+      password: password,
+      name: fullName
+    });
+
+    // Automatically log in after successful registration so token storage is immediate.
+    var loginData = await apiPost("/api/auth/login", {
+      email: email,
+      password: password
+    });
+
+    if (!loginData.token) {
+      throw new Error("Registration succeeded but no login token was returned.");
+    }
+
+    saveToken(loginData.token);
+    setFeedback("Registration successful. JWT saved in local storage.", "success");
+  }
 
   function setFieldError(input, message) {
     var errorNode = document.getElementById(input.id + "Error");
@@ -72,16 +177,12 @@
     }
 
     if (firstInvalid) {
-      if (feedback) {
-        feedback.textContent = "Please fix the highlighted fields and try again.";
-      }
+      setFeedback("Please fix the highlighted fields and try again.", "error");
       firstInvalid.focus();
       return false;
     }
 
-    if (feedback) {
-      feedback.textContent = "Looks good. Form is ready to submit.";
-    }
+    setFeedback("", "");
 
     return true;
   }
@@ -107,14 +208,25 @@
     }
   });
 
-  form.addEventListener("submit", function (event) {
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
     if (!validateForm()) {
-      event.preventDefault();
       return;
     }
 
-    if (feedback) {
-      feedback.textContent = "";
+    setSubmittingState(true);
+
+    try {
+      if (form.id === "registrationForm") {
+        await handleRegistrationSubmit();
+      } else {
+        await handleLoginSubmit();
+      }
+    } catch (error) {
+      setFeedback(error.message, "error");
+    } finally {
+      setSubmittingState(false);
     }
   });
 })();
