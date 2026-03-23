@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeeker | CV Form</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+  <main class="auth-main">
+    <section class="auth-card cv-card" aria-labelledby="cv-heading">
+      <h1 id="cv-heading">Create Your CV</h1>
+      <p class="auth-subtitle">Fill in all required details to build your CV profile.</p>
+
+      <form id="cvForm" class="auth-form" action="#" method="post" enctype="multipart/form-data" novalidate>
+        <div class="form-row">
+          <label for="name">Full Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" required>
+        </div>
+
+        <div class="form-row">
+          <label for="email">Email Address</label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="form-row">
+          <label for="phone">Phone Number</label>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" required>
+        </div>
+
+        <div class="form-row">
+          <label for="education">Education</label>
+          <textarea id="education" name="education" rows="4" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="experience">Work Experience</label>
+          <textarea id="experience" name="experience" rows="5" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="skills">Skills</label>
+          <textarea id="skills" name="skills" rows="4" placeholder="Example: JavaScript, SQL, React" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="cvFile">Upload CV File (PDF or DOCX)</label>
+          <input id="cvFile" name="cvFile" type="file" accept=".pdf,.doc,.docx" required>
+        </div>
+
+        <div class="form-row">
+          <button type="submit">Save CV</button>
+        </div>
+      </form>
+
+      <p class="auth-switch">Need to sign in first? <a href="login.html">Go to Login</a></p>
+    </section>
+  </main>
+</body>
+</html>
