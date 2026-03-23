@@ -53,7 +53,15 @@ function runMigrations() {
       FOREIGN KEY (cv_id) REFERENCES cvs(id),
       UNIQUE(user_id, job_id)
     );
+
+    CREATE TABLE IF NOT EXISTS token_blacklist (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      token TEXT UNIQUE NOT NULL,
+      invalidated_at TEXT DEFAULT (datetime('now'))
+    );
   `);
+
+  db.prepare(`DELETE FROM token_blacklist WHERE invalidated_at < datetime('now', '-1 day')`).run();
 
   console.log('Migrations completed successfully.');
 }
