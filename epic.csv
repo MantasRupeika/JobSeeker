@@ -1,0 +1,9 @@
+Issue Type,Summary,Epic Name,Priority,Description
+Epic,Backend infrastruktūra ir autentifikacija,EPIC-1,,Backend sistemos architektūra autentifikacija ir vartotojų valdymas
+Epic,Darbo skelbimų modulis,EPIC-2,,Darbo skelbimų scraping ir API sąrašas
+Epic,CV kūrimas ir valdymas,EPIC-3,,CV kūrimo ir valdymo funkcionalumas
+Epic,AI skelbimų suderinimas,EPIC-4,,AI algoritmas darbo pasiūlymų suderinimui
+Epic,Žemėlapis ir geografija,EPIC-5,,Žemėlapio funkcijos ir lokacijos skaičiavimai
+Epic,Frontend UI/UX,EPIC-6,,Frontend vartotojo sąsaja
+Epic,Testavimas ir kokybė,EPIC-7,,Automatiniai testai ir kokybės užtikrinimas
+Epic,DevOps ir deployment,EPIC-8,,CI/CD ir deployment infrastruktūra
