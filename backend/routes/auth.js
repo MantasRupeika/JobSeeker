@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../db/database');
+const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -60,6 +61,17 @@ router.post('/login', async (req, res) => {
     );
 
     return res.status(200).json({ token });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Serverio klaida' });
+  }
+});
+
+router.post('/logout', authMiddleware, (req, res) => {
+  try {
+    const token = req.headers['authorization'].slice(7);
+    db.prepare('INSERT INTO token_blacklist (token) VALUES (?)').run(token);
+    return res.status(200).json({ message: 'Logged out successfully' });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Serverio klaida' });
