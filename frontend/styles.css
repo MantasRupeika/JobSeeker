@@ -45,6 +45,10 @@ body.auth-page {
   backdrop-filter: blur(5px);
 }
 
+.cv-card {
+  width: min(100%, 720px);
+}
+
 .auth-card h1 {
   margin: 0;
   font-family: "Fraunces", "Georgia", serif;
@@ -104,7 +108,30 @@ body.auth-page {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.form-row textarea,
+.form-row input[type="file"] {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font: inherit;
+  padding: 11px 12px;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-row textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
 .form-row input:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(11, 127, 171, 0.2);
+}
+
+.form-row textarea:focus,
+.form-row input[type="file"]:focus {
   outline: none;
   border-color: var(--focus);
   box-shadow: 0 0 0 3px rgba(11, 127, 171, 0.2);
