@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../db/database');
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -12,6 +13,12 @@ function authMiddleware(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const blacklisted = db.prepare('SELECT id FROM token_blacklist WHERE token = ?').get(token);
+    if (blacklisted) {
+      return res.status(401).json({ error: 'Token has been invalidated' });
+    }
+
     req.user = decoded;
     next();
   } catch (err) {
