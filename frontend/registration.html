@@ -4,45 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobSeeker | Registration</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <main>
-    <section aria-labelledby="registration-heading">
+<body class="auth-page">
+  <main class="auth-main">
+    <section class="auth-card" aria-labelledby="registration-heading">
       <h1 id="registration-heading">Create Account</h1>
-      <p>Sign up to start applying for jobs with JobSeeker.</p>
+      <p class="auth-subtitle">Sign up to start applying for jobs with JobSeeker.</p>
 
-      <form action="#" method="post">
-        <div>
+      <form class="auth-form" action="#" method="post">
+        <div class="form-row">
           <label for="fullName">Full Name</label>
           <input id="fullName" name="fullName" type="text" autocomplete="name" required>
         </div>
 
-        <div>
+        <div class="form-row">
           <label for="homeAddress">Home Address</label>
           <input id="homeAddress" name="homeAddress" type="text" autocomplete="street-address" required>
         </div>
 
-        <div>
+        <div class="form-row">
           <label for="email">Email</label>
           <input id="email" name="email" type="email" autocomplete="email" required>
         </div>
 
-        <div>
+        <div class="form-row">
           <label for="password">Password</label>
           <input id="password" name="password" type="password" autocomplete="new-password" required>
         </div>
 
-        <div>
+        <div class="form-row">
           <label for="confirmPassword">Confirm Password</label>
           <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required>
         </div>
 
-        <div>
+        <div class="form-row">
           <button type="submit">Register</button>
         </div>
       </form>
 
-      <p>Already have an account? <a href="login.html">Sign in</a></p>
+      <p class="auth-switch">Already have an account? <a href="login.html">Sign in</a></p>
     </section>
   </main>
 </body>
