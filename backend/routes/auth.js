@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const db = require('../db/database');
 
 const router = express.Router();
@@ -28,6 +29,37 @@ router.post('/register', async (req, res) => {
     ).run(email, hashedPassword, name || null);
 
     return res.status(201).json({ id: result.lastInsertRowid, email });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Serverio klaida' });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'email ir password yra privalomi' });
+    }
+
+    const user = db.prepare('SELECT id, email, password FROM users WHERE email = ?').get(email);
+    if (!user) {
+      return res.status(404).json({ error: 'Vartotojas nerastas' });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ error: 'Neteisingas slaptažodis' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    return res.status(200).json({ token });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Serverio klaida' });
