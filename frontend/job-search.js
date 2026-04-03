@@ -22,6 +22,7 @@
 
     jobsStatus.textContent = message || "";
     jobsStatus.classList.toggle("is-error", Boolean(isError));
+    jobsStatus.classList.toggle("is-loading", message === "Loading jobs...");
   }
 
   function formatSalary(salaryMin, salaryMax) {

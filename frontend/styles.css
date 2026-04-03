@@ -346,6 +346,11 @@ body.auth-page {
   color: #dce7ee;
 }
 
+.jobs-status.is-loading {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
 .jobs-status.is-error {
   color: #ffd3ce;
 }
