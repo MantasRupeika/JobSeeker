@@ -1,5 +1,6 @@
 (function () {
   var API_BASE_URL = window.API_BASE_URL || "http://localhost:3000";
+  var TOKEN_STORAGE_KEY = "jobseeker_jwt";
   var jobGrid = document.getElementById("jobGrid");
   var jobCardTemplate = document.getElementById("jobCardTemplate");
   var jobsStatus = document.getElementById("jobsStatus");
@@ -97,6 +98,40 @@
     });
   }
 
+  function getToken() {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+async function saveJob(jobId) {
+  var token = getToken();
+
+  if (!token) {
+    setStatus("You must be logged in to save jobs.", true);
+    return;
+  }
+
+  try {
+    var response = await fetch(API_BASE_URL + "/api/saved-jobs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ jobId: jobId })
+    });
+
+    var data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to save job.");
+    }
+
+    setStatus("Job saved successfully.", false);
+  } catch (error) {
+    setStatus(error.message || "Failed to save job.", true);
+  }
+}
+
   function renderJobs() {
     var jobs = getFilteredJobs();
 
@@ -137,6 +172,13 @@
       if (salaryNode) {
         salaryNode.textContent = formatSalary(job.salaryMin, job.salaryMax);
       }
+      
+      var saveButton = clone.querySelector('[data-job="save-button"]');
+      if (saveButton) {
+        saveButton.addEventListener("click", function () {
+        saveJob(job.id);
+    });
+  }
 
       fragment.appendChild(clone);
     });

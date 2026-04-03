@@ -445,3 +445,16 @@ body.auth-page {
   text-align: center;
   padding: 32px;
 }
+
+.save-job-btn {
+  padding: 8px 12px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background-color: #122432;
+  color: white;
+}
+
+.save-job-btn:hover {
+  opacity: 0.9;
+}
