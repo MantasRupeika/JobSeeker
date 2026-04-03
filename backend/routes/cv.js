@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/database');
 const authMiddleware = require('../middleware/auth');
+const { validateCvInput } = require('../validation/cv');
 
 const router = express.Router();
 
@@ -8,8 +9,9 @@ router.post('/', authMiddleware, (req, res) => {
   try {
     const { name, email, phone, experience, education, skills } = req.body;
 
-    if (!name || typeof name !== 'string' || name.trim() === '') {
-      return res.status(400).json({ error: 'name yra privalomas' });
+    const errors = validateCvInput({ name, email, phone, experience, education, skills });
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
     }
 
     const experienceStr = experience != null ? JSON.stringify(experience) : null;
