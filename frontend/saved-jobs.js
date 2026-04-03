@@ -47,10 +47,11 @@
   function renderJobs(jobs) {
     container.innerHTML = "";
 
-    if (!jobs.length) {
+        if (!jobs.length) {
       container.innerHTML = `
-        <div class="job-card">
-          <p>You have no saved jobs yet.</p>
+        <div class="job-card empty-state">
+          <h3>No saved jobs yet</h3>
+          <p>You have not saved any job listings yet.</p>
         </div>
       `;
       return;
