@@ -11,28 +11,51 @@
     <h1 class="jobs-title">Find Jobs</h1>
     <p class="jobs-subtitle">Browse open roles and compare key details quickly.</p>
 
-    <section class="job-grid" aria-label="Job results">
-      <article class="job-card">
-        <h2 class="job-title">Frontend Developer</h2>
-        <p class="job-meta"><span><span class="meta-label">Company:</span> BrightApps</span></p>
-        <p class="job-meta"><span><span class="meta-label">Location:</span> Vilnius, Lithuania</span></p>
-        <p class="job-meta"><span><span class="meta-label">Salary:</span> 2400 - 3200 EUR / month</span></p>
-      </article>
+    <section class="job-filters" aria-labelledby="job-filters-heading">
+      <h2 id="job-filters-heading" class="job-filters-title">JobFilters</h2>
+      <div class="job-filters-grid">
+        <label class="filter-field" for="jobTypeFilter">
+          <span>Job type</span>
+          <select id="jobTypeFilter" name="jobType">
+            <option value="">All types</option>
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+            <option value="contract">Contract</option>
+            <option value="internship">Internship</option>
+          </select>
+        </label>
 
-      <article class="job-card">
-        <h2 class="job-title">Backend Engineer</h2>
-        <p class="job-meta"><span><span class="meta-label">Company:</span> CloudForge</span></p>
-        <p class="job-meta"><span><span class="meta-label">Location:</span> Kaunas, Lithuania</span></p>
-        <p class="job-meta"><span><span class="meta-label">Salary:</span> 2800 - 3600 EUR / month</span></p>
-      </article>
+        <label class="filter-field" for="locationFilter">
+          <span>Location</span>
+          <input id="locationFilter" name="location" type="text" placeholder="e.g. Vilnius">
+        </label>
 
-      <article class="job-card">
-        <h2 class="job-title">QA Specialist</h2>
-        <p class="job-meta"><span><span class="meta-label">Company:</span> TestNest</span></p>
-        <p class="job-meta"><span><span class="meta-label">Location:</span> Remote</span></p>
-        <p class="job-meta"><span><span class="meta-label">Salary:</span> 1900 - 2600 EUR / month</span></p>
-      </article>
+        <label class="filter-field" for="salaryMinFilter">
+          <span>Salary range from</span>
+          <input id="salaryMinFilter" name="salaryMin" type="number" min="0" step="100" placeholder="e.g. 1500">
+        </label>
+
+        <label class="filter-field" for="salaryMaxFilter">
+          <span>Salary range to</span>
+          <input id="salaryMaxFilter" name="salaryMax" type="number" min="0" step="100" placeholder="e.g. 3500">
+        </label>
+      </div>
     </section>
+
+    <p id="jobsStatus" class="jobs-status" role="status" aria-live="polite"></p>
+    <p id="jobsCount" class="jobs-count"></p>
+
+    <section id="jobGrid" class="job-grid" aria-label="Job results"></section>
+
+    <template id="jobCardTemplate">
+      <article class="job-card">
+        <h2 class="job-title"></h2>
+        <p class="job-meta"><span><span class="meta-label">Company:</span> <span data-job="company"></span></span></p>
+        <p class="job-meta"><span><span class="meta-label">Location:</span> <span data-job="location"></span></span></p>
+        <p class="job-meta"><span><span class="meta-label">Salary:</span> <span data-job="salary"></span></span></p>
+      </article>
+    </template>
   </main>
+  <script src="job-search.js"></script>
 </body>
 </html>

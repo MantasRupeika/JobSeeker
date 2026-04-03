@@ -297,6 +297,65 @@ body.auth-page {
   color: #dce7ee;
 }
 
+.job-filters {
+  padding: 16px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  background: rgba(246, 250, 252, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 14px 30px rgba(4, 18, 29, 0.2);
+}
+
+.job-filters-title {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+
+.job-filters-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.filter-field {
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #2b3f4c;
+}
+
+.filter-field input,
+.filter-field select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  padding: 10px 11px;
+  background: #ffffff;
+}
+
+.filter-field input:focus,
+.filter-field select:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(11, 127, 171, 0.2);
+}
+
+.jobs-status {
+  margin: 0 0 8px;
+  color: #dce7ee;
+}
+
+.jobs-status.is-error {
+  color: #ffd3ce;
+}
+
+.jobs-count {
+  margin: 0 0 12px;
+  color: #eef5f9;
+  font-weight: 500;
+}
+
 .job-grid {
   display: grid;
   gap: 14px;
