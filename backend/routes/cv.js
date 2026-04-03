@@ -97,4 +97,25 @@ router.put('/:id', authMiddleware, (req, res) => {
   }
 });
 
+router.delete('/:id', authMiddleware, (req, res) => {
+  try {
+    const cvId = parseInt(req.params.id, 10);
+    if (isNaN(cvId)) {
+      return res.status(400).json({ error: 'Neteisingas CV id' });
+    }
+
+    const cv = db.prepare('SELECT * FROM cvs WHERE id = ?').get(cvId);
+    if (!cv) {
+      return res.status(404).json({ error: 'CV nerastas' });
+    }
+
+    db.prepare('DELETE FROM cvs WHERE id = ?').run(cvId);
+
+    return res.status(200).json({ message: 'CV ištrintas' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Serverio klaida' });
+  }
+});
+
 module.exports = router;
