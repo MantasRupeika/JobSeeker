@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeeker | Job Search</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="jobs-page">
+  <main class="jobs-main">
+    <h1 class="jobs-title">Find Jobs</h1>
+    <p class="jobs-subtitle">Browse open roles and compare key details quickly.</p>
+
+    <section class="job-filters" aria-labelledby="job-filters-heading">
+      <h2 id="job-filters-heading" class="job-filters-title">JobFilters</h2>
+      <div class="job-filters-grid">
+        <label class="filter-field" for="jobTypeFilter">
+          <span>Job type</span>
+          <select id="jobTypeFilter" name="jobType">
+            <option value="">All types</option>
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+            <option value="contract">Contract</option>
+            <option value="internship">Internship</option>
+          </select>
+        </label>
+
+        <label class="filter-field" for="locationFilter">
+          <span>Location</span>
+          <input id="locationFilter" name="location" type="text" placeholder="e.g. Vilnius">
+        </label>
+
+        <label class="filter-field" for="salaryMinFilter">
+          <span>Salary range from</span>
+          <input id="salaryMinFilter" name="salaryMin" type="number" min="0" step="100" placeholder="e.g. 1500">
+        </label>
+
+        <label class="filter-field" for="salaryMaxFilter">
+          <span>Salary range to</span>
+          <input id="salaryMaxFilter" name="salaryMax" type="number" min="0" step="100" placeholder="e.g. 3500">
+        </label>
+      </div>
+    </section>
+
+    <p id="jobsStatus" class="jobs-status" role="status" aria-live="polite"></p>
+    <p id="jobsCount" class="jobs-count"></p>
+
+    <section id="jobGrid" class="job-grid" aria-label="Job results"></section>
+
+    <template id="jobCardTemplate">
+      <article class="job-card">
+        <h2 class="job-title"></h2>
+        <p class="job-meta"><span><span class="meta-label">Company:</span> <span data-job="company"></span></span></p>
+        <p class="job-meta"><span><span class="meta-label">Location:</span> <span data-job="location"></span></span></p>
+        <p class="job-meta"><span><span class="meta-label">Salary:</span> <span data-job="salary"></span></span></p>
+      </article>
+    </template>
+  </main>
+  <script src="job-search.js"></script>
+</body>
+</html>
