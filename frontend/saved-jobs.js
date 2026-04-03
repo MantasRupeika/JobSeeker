@@ -38,7 +38,7 @@
         throw new Error(data.error || "Nepavyko gauti išsaugotų skelbimų");
       }
 
-      renderJobs(data);
+            renderJobs(Array.isArray(data) ? data : []);
     } catch (error) {
       setFeedback(error.message, "error");
     }
