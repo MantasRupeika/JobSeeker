@@ -69,6 +69,10 @@ router.put('/:id', authMiddleware, (req, res) => {
       return res.status(404).json({ error: 'CV nerastas' });
     }
 
+    if (cv.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Neturite teisės redaguoti šio CV' });
+    }
+
     const experienceStr = experience != null ? JSON.stringify(experience) : null;
     const educationStr = education != null ? JSON.stringify(education) : null;
     const skillsStr = skills != null ? JSON.stringify(skills) : null;
@@ -107,6 +111,10 @@ router.delete('/:id', authMiddleware, (req, res) => {
     const cv = db.prepare('SELECT * FROM cvs WHERE id = ?').get(cvId);
     if (!cv) {
       return res.status(404).json({ error: 'CV nerastas' });
+    }
+
+    if (cv.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Neturite teisės ištrinti šio CV' });
     }
 
     db.prepare('DELETE FROM cvs WHERE id = ?').run(cvId);
