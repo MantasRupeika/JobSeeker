@@ -70,4 +70,32 @@ router.get('/', authMiddleware, (req, res) => {
     return res.status(500).json({ error: 'Serverio klaida' });
   }
 });
+
+router.delete('/:jobId', authMiddleware, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const jobId = Number(req.params.jobId);
+
+    if (!Number.isInteger(jobId) || jobId <= 0) {
+      return res.status(400).json({ error: 'Neteisingas jobId' });
+    }
+
+    const existing = db
+      .prepare('SELECT id FROM saved_jobs WHERE user_id = ? AND job_id = ?')
+      .get(userId, jobId);
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Išsaugotas skelbimas nerastas' });
+    }
+
+    db.prepare('DELETE FROM saved_jobs WHERE user_id = ? AND job_id = ?')
+      .run(userId, jobId);
+
+    return res.status(200).json({ message: 'Saved job removed successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Serverio klaida' });
+  }
+});
+
 module.exports = router;
