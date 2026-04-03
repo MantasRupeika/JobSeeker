@@ -1,4 +1,5 @@
 import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -187,6 +188,74 @@ class ExportTests(unittest.TestCase):
             written = json.loads(output_path.read_text(encoding="utf-8"))
 
         self.assertEqual(written, jobs)
+
+
+class SalaryParsingTests(unittest.TestCase):
+    def test_parse_salary_range_extracts_bounds(self):
+        self.assertEqual(
+            scrape.parse_salary_range("3400-4400 €/mon. neatskaičius mokesčių"),
+            (3400.0, 4400.0),
+        )
+
+    def test_parse_salary_range_returns_single_value_for_fixed_salary(self):
+        self.assertEqual(
+            scrape.parse_salary_range("Nuo 2500 €/mon."),
+            (2500.0, 2500.0),
+        )
+
+    def test_parse_salary_range_handles_missing_salary(self):
+        self.assertEqual(scrape.parse_salary_range(""), (None, None))
+
+
+class DatabaseInsertTests(unittest.TestCase):
+    def test_insert_jobs_into_db_creates_and_updates_jobs(self):
+        jobs = [
+            {
+                "title": "Operations Manager",
+                "salary": "3400-4400 €/mon. neatskaičius mokesčių",
+                "description": "Example description",
+                "location": "Švitrigailos g. 34, LT-03230 Vilnius",
+                "url": "https://www.cvbankas.lt/operations-manager-kaune/1-13732953",
+            }
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            db_path = Path(temp_dir) / "jobfinder.db"
+
+            inserted = scrape.insert_jobs_into_db(jobs, db_path)
+            self.assertEqual(inserted, 1)
+
+            updated_jobs = [
+                {
+                    "title": "Senior Operations Manager",
+                    "salary": "5000 €/mon.",
+                    "description": "Updated description",
+                    "location": "Kaunas",
+                    "url": "https://www.cvbankas.lt/operations-manager-kaune/1-13732953",
+                }
+            ]
+
+            updated = scrape.insert_jobs_into_db(updated_jobs, db_path)
+            self.assertEqual(updated, 1)
+
+            with sqlite3.connect(db_path) as connection:
+                row = connection.execute(
+                    """
+                    SELECT title, salary_min, salary_max, address, url
+                    FROM jobs
+                    """
+                ).fetchone()
+
+        self.assertEqual(
+            row,
+            (
+                "Senior Operations Manager",
+                5000.0,
+                5000.0,
+                "Kaunas",
+                "https://www.cvbankas.lt/operations-manager-kaune/1-13732953",
+            ),
+        )
 
 
 if __name__ == "__main__":
