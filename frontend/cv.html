@@ -11,6 +11,7 @@
     <section class="auth-card cv-card" aria-labelledby="cv-heading">
       <h1 id="cv-heading">Create Your CV</h1>
       <p class="auth-subtitle">Fill in all required details to build your CV profile.</p>
+      <p id="cvFeedback" class="form-feedback" role="status" aria-live="polite"></p>
 
       <form id="cvForm" class="auth-form" action="#" method="post" enctype="multipart/form-data" novalidate>
         <div class="form-row">
@@ -25,7 +26,7 @@
 
         <div class="form-row">
           <label for="phone">Phone Number</label>
-          <input id="phone" name="phone" type="tel" autocomplete="tel" required>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="numeric" pattern="[0-9]+" title="Phone number must contain numbers only" required>
         </div>
 
         <div class="form-row">
@@ -44,8 +45,12 @@
         </div>
 
         <div class="form-row">
-          <label for="cvFile">Upload CV File (PDF or DOCX)</label>
-          <input id="cvFile" name="cvFile" type="file" accept=".pdf,.doc,.docx" required>
+          <label for="cvFile">Upload CV File (PDF or DOCX, optional)</label>
+          <input id="cvFile" name="cvFile" type="file" accept=".pdf,.doc,.docx">
+        </div>
+
+        <div class="form-row">
+          <button id="previewBtn" class="secondary-btn" type="button">Preview CV</button>
         </div>
 
         <div class="form-row">
@@ -53,8 +58,37 @@
         </div>
       </form>
 
+      <section id="cvPreview" class="cv-preview-modal" aria-labelledby="cv-preview-heading" hidden>
+        <div class="cv-preview-panel" role="dialog" aria-modal="true" aria-labelledby="cv-preview-heading">
+          <button id="closePreviewBtn" class="close-preview-btn" type="button" aria-label="Close preview">x</button>
+          <h2 id="cv-preview-heading">CV Preview</h2>
+          <div class="cv-preview-grid">
+            <p><strong>Name:</strong> <span id="previewName">-</span></p>
+            <p><strong>Email:</strong> <span id="previewEmail">-</span></p>
+            <p><strong>Phone:</strong> <span id="previewPhone">-</span></p>
+          </div>
+          <div class="cv-preview-block">
+            <h3>Education</h3>
+            <p id="previewEducation">-</p>
+          </div>
+          <div class="cv-preview-block">
+            <h3>Work Experience</h3>
+            <p id="previewExperience">-</p>
+          </div>
+          <div class="cv-preview-block">
+            <h3>Skills</h3>
+            <p id="previewSkills">-</p>
+          </div>
+          <div class="cv-preview-block">
+            <h3>File</h3>
+            <p id="previewFile">-</p>
+          </div>
+        </div>
+      </section>
+
       <p class="auth-switch">Need to sign in first? <a href="login.html">Go to Login</a></p>
     </section>
   </main>
+  <script src="cv-preview.js"></script>
 </body>
 </html>
