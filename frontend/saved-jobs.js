@@ -38,7 +38,7 @@
         throw new Error(data.error || "Nepavyko gauti išsaugotų skelbimų");
       }
 
-      renderJobs(data);
+            renderJobs(Array.isArray(data) ? data : []);
     } catch (error) {
       setFeedback(error.message, "error");
     }
@@ -47,10 +47,11 @@
   function renderJobs(jobs) {
     container.innerHTML = "";
 
-    if (!jobs.length) {
+        if (!jobs.length) {
       container.innerHTML = `
-        <div class="job-card">
-          <p>You have no saved jobs yet.</p>
+        <div class="job-card empty-state">
+          <h3>No saved jobs yet</h3>
+          <p>You have not saved any job listings yet.</p>
         </div>
       `;
       return;
@@ -81,6 +82,9 @@
       button.addEventListener("click", async function () {
         const jobId = this.getAttribute("data-job-id");
 
+        if (!confirm("Are you sure you want to remove this saved job?")) {
+            return;
+        }
         try {
           const response = await fetch(API_BASE_URL + "/api/saved-jobs/" + jobId, {
             method: "DELETE",

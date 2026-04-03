@@ -54,6 +54,16 @@ function runMigrations() {
       UNIQUE(user_id, job_id)
     );
 
+    CREATE TABLE IF NOT EXISTS saved_jobs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      job_id INTEGER NOT NULL,
+      saved_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+      UNIQUE(user_id, job_id)
+    );
+
     CREATE TABLE IF NOT EXISTS token_blacklist (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       token TEXT UNIQUE NOT NULL,
