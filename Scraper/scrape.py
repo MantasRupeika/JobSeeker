@@ -1,10 +1,11 @@
-"""Scrape CVBankas job listings into JSON."""
+"""Scrape CVBankas job listings into the JobSeeker SQLite database."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import re
+import sqlite3
 import time
 from html.parser import HTMLParser
 from pathlib import Path
@@ -14,7 +15,7 @@ from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
 BASE_URL = "https://www.cvbankas.lt/"
-DEFAULT_OUTPUT = "cvbankas_jobs.json"
+DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "backend" / "data" / "jobfinder.db"
 DEFAULT_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -22,6 +23,21 @@ DEFAULT_HEADERS = {
         "Chrome/123.0.0.0 Safari/537.36"
     )
 }
+JOBS_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS jobs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    company TEXT,
+    salary_min REAL,
+    salary_max REAL,
+    job_type TEXT,
+    address TEXT,
+    lat REAL,
+    lng REAL,
+    url TEXT UNIQUE,
+    scraped_at TEXT DEFAULT (datetime('now'))
+)
+"""
 
 
 def fetch_html(url: str, timeout: int = 30) -> str:
@@ -133,9 +149,84 @@ def export_jobs_to_json(jobs: list[dict[str, str]], output_path: str | Path) -> 
     return output_file
 
 
+def parse_salary_range(salary_text: str) -> tuple[float | None, float | None]:
+    """Extract salary bounds from scraped salary text."""
+    normalized = salary_text.replace("\xa0", " ")
+    matches = re.findall(r"\d+(?:[.,]\d+)?", normalized)
+    values = [float(match.replace(",", ".")) for match in matches]
+
+    if not values:
+        return None, None
+    if len(values) == 1:
+        return values[0], values[0]
+    return values[0], values[1]
+
+
+def get_db_connection(db_path: str | Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
+    """Open the shared JobSeeker SQLite database and ensure the jobs table exists."""
+    resolved_path = Path(db_path)
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+
+    connection = sqlite3.connect(resolved_path)
+    connection.execute("PRAGMA foreign_keys = ON")
+    connection.execute(JOBS_TABLE_SQL)
+    return connection
+
+
+def insert_jobs_into_db(jobs: list[dict[str, str]], db_path: str | Path = DEFAULT_DB_PATH) -> int:
+    """Insert or update scraped jobs in the shared SQLite database."""
+    connection = get_db_connection(db_path)
+    inserted_count = 0
+
+    try:
+        for job in jobs:
+            salary_min, salary_max = parse_salary_range(job.get("salary", ""))
+            connection.execute(
+                """
+                INSERT INTO jobs (
+                    title,
+                    company,
+                    salary_min,
+                    salary_max,
+                    job_type,
+                    address,
+                    lat,
+                    lng,
+                    url,
+                    scraped_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                ON CONFLICT(url) DO UPDATE SET
+                    title = excluded.title,
+                    salary_min = excluded.salary_min,
+                    salary_max = excluded.salary_max,
+                    address = excluded.address,
+                    scraped_at = datetime('now')
+                """,
+                (
+                    job["title"],
+                    None,
+                    salary_min,
+                    salary_max,
+                    None,
+                    job.get("location") or None,
+                    None,
+                    None,
+                    job["url"],
+                ),
+            )
+            inserted_count += 1
+
+        connection.commit()
+    finally:
+        connection.close()
+
+    return inserted_count
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(description="Scrape CVBankas job listings into a JSON file.")
+    parser = argparse.ArgumentParser(description="Scrape CVBankas job listings into the JobSeeker SQLite database.")
     parser.add_argument(
         "-c",
         "--count",
@@ -143,10 +234,13 @@ def main(argv: list[str] | None = None) -> int:
         help="How many job listings to scrape.",
     )
     parser.add_argument(
-        "-o",
-        "--output",
-        default=DEFAULT_OUTPUT,
-        help=f"Where to write the JSON output. Default: {DEFAULT_OUTPUT}",
+        "--db-path",
+        default=str(DEFAULT_DB_PATH),
+        help=f"SQLite database path. Default: {DEFAULT_DB_PATH}",
+    )
+    parser.add_argument(
+        "--json-output",
+        help="Optional JSON output path if you also want to save the scraped payload to a file.",
     )
     parser.add_argument(
         "--start-url",
@@ -163,10 +257,14 @@ def main(argv: list[str] | None = None) -> int:
 
     count = args.count if args.count is not None else _prompt_for_count()
     jobs = scrape_jobs(count, start_url=args.start_url, delay_seconds=args.delay)
-    output_path = export_jobs_to_json(jobs, args.output)
+    written_count = insert_jobs_into_db(jobs, args.db_path)
 
     print(f"Scraped {len(jobs)} job listings.")
-    print(f"Saved JSON to {output_path.resolve()}")
+    print(f"Inserted or updated {written_count} job listings in {Path(args.db_path).resolve()}")
+
+    if args.json_output:
+        output_path = export_jobs_to_json(jobs, args.json_output)
+        print(f"Saved JSON to {output_path.resolve()}")
     return 0
 
 
