@@ -137,3 +137,145 @@ describe('POST /api/cv', () => {
     expect(res.body.error).toBe('Serverio klaida');
   });
 });
+
+describe('PUT /api/cv/:id', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const validBody = {
+    name: 'Jonas Jonaitis',
+    email: 'jonas@example.com',
+    phone: '+370 600 00000',
+    experience: ['3 metai Node.js'],
+    education: 'Vilniaus universitetas',
+    skills: ['JavaScript', 'SQL'],
+  };
+
+  const mockCv = {
+    id: 1,
+    user_id: 1,
+    name: 'Jonas Jonaitis',
+    email: 'jonas@example.com',
+    phone: '+370 600 00000',
+    experience: JSON.stringify(['3 metai Node.js']),
+    education: JSON.stringify('Vilniaus universitetas'),
+    skills: JSON.stringify(['JavaScript', 'SQL']),
+    created_at: '2026-01-01 00:00:00',
+  };
+
+  test('200 - updates CV with valid data', async () => {
+    mockGet.mockReturnValueOnce(mockCv).mockReturnValueOnce(mockCv);
+    mockRun.mockReturnValue({});
+
+    const res = await request(app).put('/api/cv/1').send(validBody);
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(1);
+    expect(res.body.name).toBe('Jonas Jonaitis');
+    expect(res.body.skills).toEqual(['JavaScript', 'SQL']);
+  });
+
+  test('400 - invalid id param', async () => {
+    const res = await request(app).put('/api/cv/abc').send(validBody);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Neteisingas CV id');
+  });
+
+  test('400 - missing name', async () => {
+    const res = await request(app).put('/api/cv/1').send({ email: 'jonas@example.com' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.errors).toContain('name yra privalomas');
+  });
+
+  test('404 - CV not found', async () => {
+    mockGet.mockReturnValueOnce(undefined);
+
+    const res = await request(app).put('/api/cv/99').send(validBody);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('CV nerastas');
+  });
+
+  test('403 - CV belongs to another user', async () => {
+    mockGet.mockReturnValueOnce({ ...mockCv, user_id: 2 });
+
+    const res = await request(app).put('/api/cv/1').send(validBody);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('Neturite teisės redaguoti šio CV');
+  });
+
+  test('500 - returns server error on db failure', async () => {
+    mockGet.mockImplementation(() => { throw new Error('DB error'); });
+
+    const res = await request(app).put('/api/cv/1').send(validBody);
+
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe('Serverio klaida');
+  });
+});
+
+describe('DELETE /api/cv/:id', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const mockCv = {
+    id: 1,
+    user_id: 1,
+    name: 'Jonas Jonaitis',
+    email: null,
+    phone: null,
+    experience: null,
+    education: null,
+    skills: null,
+    created_at: '2026-01-01 00:00:00',
+  };
+
+  test('200 - deletes CV', async () => {
+    mockGet.mockReturnValueOnce(mockCv);
+    mockRun.mockReturnValue({});
+
+    const res = await request(app).delete('/api/cv/1');
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('CV ištrintas');
+  });
+
+  test('400 - invalid id param', async () => {
+    const res = await request(app).delete('/api/cv/abc');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Neteisingas CV id');
+  });
+
+  test('404 - CV not found', async () => {
+    mockGet.mockReturnValueOnce(undefined);
+
+    const res = await request(app).delete('/api/cv/99');
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe('CV nerastas');
+  });
+
+  test('403 - CV belongs to another user', async () => {
+    mockGet.mockReturnValueOnce({ ...mockCv, user_id: 2 });
+
+    const res = await request(app).delete('/api/cv/1');
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('Neturite teisės ištrinti šio CV');
+  });
+
+  test('500 - returns server error on db failure', async () => {
+    mockGet.mockImplementation(() => { throw new Error('DB error'); });
+
+    const res = await request(app).delete('/api/cv/1');
+
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe('Serverio klaida');
+  });
+});
