@@ -42,4 +42,32 @@ router.post('/', authMiddleware, (req, res) => {
   }
 });
 
+router.get('/', authMiddleware, (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const jobs = db.prepare(`
+      SELECT
+        saved_jobs.id,
+        saved_jobs.job_id,
+        saved_jobs.saved_at,
+        jobs.title,
+        jobs.company,
+        jobs.address,
+        jobs.salary_min,
+        jobs.salary_max,
+        jobs.job_type,
+        jobs.url
+      FROM saved_jobs
+      INNER JOIN jobs ON jobs.id = saved_jobs.job_id
+      WHERE saved_jobs.user_id = ?
+      ORDER BY datetime(saved_jobs.saved_at) DESC, saved_jobs.id DESC
+    `).all(userId);
+
+    return res.status(200).json(jobs);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Serverio klaida' });
+  }
+});
 module.exports = router;
