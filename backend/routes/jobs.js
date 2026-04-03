@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
   try {
-    const { jobType, location, salaryMin, salaryMax, limit } = req.query;
+    const { jobType, location, salaryMin, salaryMax, page, pageSize } = req.query;
     const where = [];
     const params = [];
 
@@ -47,7 +47,26 @@ router.get('/', (req, res) => {
       params.push(maxValue);
     }
 
-    let query = `
+    const whereClause = where.length > 0 ? ` WHERE ${where.join(' AND ')}` : '';
+
+    const pageNum = page !== undefined && String(page).trim() !== '' ? Number(page) : 1;
+    const pageSizeNum = pageSize !== undefined && String(pageSize).trim() !== '' ? Number(pageSize) : 20;
+
+    if (!Number.isInteger(pageNum) || pageNum < 1) {
+      return res.status(400).json({ error: 'page turi būti teigiamas sveikas skaičius' });
+    }
+
+    if (!Number.isInteger(pageSizeNum) || pageSizeNum < 1 || pageSizeNum > 100) {
+      return res.status(400).json({ error: 'pageSize turi būti sveikas skaičius nuo 1 iki 100' });
+    }
+
+    const offset = (pageNum - 1) * pageSizeNum;
+
+    const countRow = db.prepare(`SELECT COUNT(*) as count FROM jobs${whereClause}`).get(...params);
+    const total = countRow.count;
+    const totalPages = Math.ceil(total / pageSizeNum);
+
+    const rows = db.prepare(`
       SELECT
         id,
         title,
@@ -58,26 +77,10 @@ router.get('/', (req, res) => {
         job_type,
         url,
         scraped_at
-      FROM jobs
-    `;
-
-    if (where.length > 0) {
-      query += ` WHERE ${where.join(' AND ')}`;
-    }
-
-    query += ' ORDER BY datetime(scraped_at) DESC, id DESC';
-
-    const hasLimit = limit !== undefined && String(limit).trim() !== '';
-    if (hasLimit) {
-      const limitValue = Number(limit);
-      if (!Number.isInteger(limitValue) || limitValue <= 0) {
-        return res.status(400).json({ error: 'limit turi būti teigiamas sveikas skaičius' });
-      }
-      query += ' LIMIT ?';
-      params.push(limitValue);
-    }
-
-    const rows = db.prepare(query).all(...params);
+      FROM jobs${whereClause}
+      ORDER BY datetime(scraped_at) DESC, id DESC
+      LIMIT ? OFFSET ?
+    `).all(...params, pageSizeNum, offset);
 
     const jobs = rows.map((row) => ({
       id: row.id,
@@ -91,7 +94,15 @@ router.get('/', (req, res) => {
       scrapedAt: row.scraped_at
     }));
 
-    return res.status(200).json({ jobs });
+    return res.status(200).json({
+      jobs,
+      pagination: {
+        total,
+        page: pageNum,
+        pageSize: pageSizeNum,
+        totalPages
+      }
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Serverio klaida' });
