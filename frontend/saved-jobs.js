@@ -81,6 +81,9 @@
       button.addEventListener("click", async function () {
         const jobId = this.getAttribute("data-job-id");
 
+        if (!confirm("Are you sure you want to remove this saved job?")) {
+            return;
+        }
         try {
           const response = await fetch(API_BASE_URL + "/api/saved-jobs/" + jobId, {
             method: "DELETE",
