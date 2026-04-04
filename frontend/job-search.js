@@ -266,6 +266,13 @@
   }
 
   async function getJobCoordinates(job) {
+    var lat = Number(job && job.lat);
+    var lng = Number(job && job.lng);
+
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return { lat: lat, lng: lng };
+    }
+
     if (window.geocodingService && typeof window.geocodingService.geocodeAddress === "function") {
       return window.geocodingService.geocodeAddress(job.location, {
         country: "Lithuania"

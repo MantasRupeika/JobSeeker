@@ -20,6 +20,8 @@ const mockJob = {
   title: 'Frontend Developer',
   company: 'BrightApps',
   address: 'Vilnius',
+  lat: 54.6872,
+  lng: 25.2797,
   salary_min: 2400,
   salary_max: 3200,
   job_type: 'full-time',
@@ -44,6 +46,8 @@ describe('GET /api/jobs', () => {
       title: 'Frontend Developer',
       company: 'BrightApps',
       location: 'Vilnius',
+      lat: 54.6872,
+      lng: 25.2797,
       salaryMin: 2400,
       salaryMax: 3200,
       jobType: 'full-time'
