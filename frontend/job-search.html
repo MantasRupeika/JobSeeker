@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobSeeker | Job Search</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body class="jobs-page">
   <main class="jobs-main">
@@ -42,10 +43,25 @@
       </div>
     </section>
 
-    <p id="jobsStatus" class="jobs-status" role="status" aria-live="polite"></p>
-    <p id="jobsCount" class="jobs-count"></p>
+    <section class="job-dashboard" aria-label="Job map and results">
+      <section class="job-map-panel" aria-labelledby="job-map-heading">
+        <div class="job-panel-header">
+          <div>
+            <h2 id="job-map-heading" class="job-panel-title">Map view</h2>
+            <p class="job-map-note">The map follows your filters and places markers for jobs with discoverable locations.</p>
+          </div>
+        </div>
+        <div id="jobMap" class="job-map" aria-label="Map of job locations"></div>
+        <p id="jobMapStatus" class="job-map-status" aria-live="polite"></p>
+      </section>
 
-    <section id="jobGrid" class="job-grid" aria-label="Job results"></section>
+      <section class="job-results-panel" aria-labelledby="job-results-heading">
+        <h2 id="job-results-heading" class="job-panel-title sr-only">Job results</h2>
+        <p id="jobsStatus" class="jobs-status" role="status" aria-live="polite"></p>
+        <p id="jobsCount" class="jobs-count"></p>
+        <section id="jobGrid" class="job-grid" aria-label="Job results"></section>
+      </section>
+    </section>
 
     <template id="jobCardTemplate">
       <article class="job-card">
@@ -58,6 +74,8 @@
       </article>
     </template>
   </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="geocoding-service.js"></script>
   <script src="job-search.js"></script>
 </body>
 </html>

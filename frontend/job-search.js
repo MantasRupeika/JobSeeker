@@ -8,6 +8,8 @@
   var jobCardTemplate = document.getElementById("jobCardTemplate");
   var jobsStatus = document.getElementById("jobsStatus");
   var jobsCount = document.getElementById("jobsCount");
+  var jobMapElement = document.getElementById("jobMap");
+  var jobMapStatus = document.getElementById("jobMapStatus");
   var jobTypeFilter = document.getElementById("jobTypeFilter");
   var locationFilter = document.getElementById("locationFilter");
   var salaryMinFilter = document.getElementById("salaryMinFilter");
@@ -16,10 +18,15 @@
   var renderedJobs = [];
   var activeRequestId = 0;
   var filterDebounceId = null;
+  var mapInstance = null;
+  var markerLayer = null;
+  var mapUpdateToken = 0;
 
   if (!jobGrid || !jobCardTemplate) {
     return;
   }
+
+  initializeMap();
 
   function setStatus(message, isError, isLoading) {
     if (!jobsStatus) {
@@ -31,10 +38,18 @@
     jobsStatus.classList.toggle("is-loading", Boolean(isLoading));
   }
 
+  function setMapStatus(message, isError) {
+    if (!jobMapStatus) {
+      return;
+    }
+
+    jobMapStatus.textContent = message || "";
+    jobMapStatus.classList.toggle("is-error", Boolean(isError));
+  }
+
   function formatSalary(salaryMin, salaryMax) {
     var min = Number(salaryMin);
     var max = Number(salaryMax);
-
     var hasMin = Number.isFinite(min);
     var hasMax = Number.isFinite(max);
 
@@ -175,6 +190,15 @@
     jobTypeFilter.disabled = distinctTypes.length === 0;
   }
 
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function getToken() {
     return localStorage.getItem(TOKEN_STORAGE_KEY);
   }
@@ -209,6 +233,119 @@
     }
   }
 
+  function initializeMap() {
+    if (!jobMapElement || !window.L || mapInstance) {
+      return;
+    }
+
+    mapInstance = window.L.map(jobMapElement, {
+      scrollWheelZoom: false
+    }).setView([55.1694, 23.8813], 7);
+
+    window.L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      subdomains: "abcd",
+      maxZoom: 20,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(mapInstance);
+
+    markerLayer = window.L.layerGroup().addTo(mapInstance);
+    setMapStatus("Map is ready.", false);
+  }
+
+  function buildPopupHtml(job) {
+    var jobUrl = job.url ? String(job.url).trim() : "";
+
+    return [
+      '<article class="map-job-card">',
+      '<h3 class="map-job-title">' + escapeHtml(job.title || "Untitled role") + '</h3>',
+      '<p class="map-job-meta"><span class="map-job-label">Location:</span> ' + escapeHtml(job.location) + '</p>',
+      '<p class="map-job-meta"><span class="map-job-label">Salary:</span> ' + escapeHtml(formatSalary(job.salaryMin, job.salaryMax)) + '</p>',
+      jobUrl ? '<a class="map-job-link" href="' + escapeHtml(jobUrl) + '" target="_blank" rel="noopener noreferrer">Open listing</a>' : '',
+      '</article>'
+    ].join("");
+  }
+
+  async function getJobCoordinates(job) {
+    if (window.geocodingService && typeof window.geocodingService.geocodeAddress === "function") {
+      return window.geocodingService.geocodeAddress(job.location, {
+        country: "Lithuania"
+      });
+    }
+
+    return null;
+  }
+
+  async function updateMap(jobs) {
+    if (!jobMapElement || !window.L) {
+      return;
+    }
+
+    initializeMap();
+
+    if (!mapInstance || !markerLayer) {
+      return;
+    }
+
+    var updateToken = ++mapUpdateToken;
+    markerLayer.clearLayers();
+
+    if (jobs.length === 0) {
+      setMapStatus("No jobs to plot for the current filters.", false);
+      return;
+    }
+
+    setMapStatus("Updating map...", false);
+
+    var mappedJobs = await Promise.all(
+      jobs.map(async function (job) {
+        var coordinates = await getJobCoordinates(job);
+
+        if (!coordinates) {
+          return null;
+        }
+
+        return {
+          job: job,
+          coordinates: coordinates
+        };
+      })
+    );
+
+    if (updateToken !== mapUpdateToken) {
+      return;
+    }
+
+    var visibleJobs = mappedJobs.filter(Boolean);
+
+    if (visibleJobs.length === 0) {
+      setMapStatus("No mappable jobs in the current results.", false);
+      return;
+    }
+
+    var bounds = [];
+
+    visibleJobs.forEach(function (entry) {
+      var marker = window.L.marker([entry.coordinates.lat, entry.coordinates.lng]);
+      marker.bindPopup(buildPopupHtml(entry.job), {
+        maxWidth: 320,
+        className: "job-map-popup"
+      });
+      marker.addTo(markerLayer);
+      bounds.push([entry.coordinates.lat, entry.coordinates.lng]);
+    });
+
+    if (bounds.length === 1) {
+      mapInstance.setView(bounds[0], 11);
+    } else {
+      mapInstance.fitBounds(bounds, {
+        padding: [30, 30],
+        maxZoom: 11
+      });
+    }
+
+    setMapStatus(visibleJobs.length + " mapped jobs shown on the map.", false);
+  }
+
   function renderJobs() {
     jobGrid.innerHTML = "";
 
@@ -218,6 +355,7 @@
 
     if (renderedJobs.length === 0) {
       setStatus("No jobs match current filters.", false, false);
+      updateMap([]);
       return;
     }
 
@@ -254,6 +392,7 @@
     });
 
     jobGrid.appendChild(fragment);
+    updateMap(renderedJobs);
   }
 
   async function fetchJobsPage(filterState, page) {
@@ -282,6 +421,7 @@
     var requestId = activeRequestId;
 
     setStatus("Loading jobs...", false, true);
+    setMapStatus("Loading map data...", false);
 
     try {
       var firstPage = await fetchJobsPage(filterState, 1);
@@ -311,12 +451,18 @@
 
       renderedJobs = [];
       jobGrid.innerHTML = "";
+      mapUpdateToken += 1;
+
+      if (markerLayer) {
+        markerLayer.clearLayers();
+      }
 
       if (jobsCount) {
         jobsCount.textContent = "0 jobs found";
       }
 
       setStatus(error.message || "Failed to load jobs.", true, false);
+      setMapStatus("Map data could not be loaded.", true);
     }
   }
 
