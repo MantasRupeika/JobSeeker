@@ -11,11 +11,13 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Callable
 from urllib.error import HTTPError, URLError
-from urllib.parse import urljoin, urlparse
+from urllib.parse import quote_plus, urljoin, urlparse
 from urllib.request import Request, urlopen
 
 BASE_URL = "https://www.cvbankas.lt/"
 DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "backend" / "data" / "jobfinder.db"
+DEFAULT_GEOCODING_COUNTRY = "Lithuania"
+DEFAULT_GEOCODING_DELAY = 1.0
 DEFAULT_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -162,6 +164,45 @@ def parse_salary_range(salary_text: str) -> tuple[float | None, float | None]:
     return values[0], values[1]
 
 
+def geocode_address(
+    address: str,
+    *,
+    country: str = DEFAULT_GEOCODING_COUNTRY,
+    timeout: int = 30,
+    fetcher: Callable[[str, int], str] | None = None,
+) -> tuple[float, float] | None:
+    """Resolve an address into latitude/longitude using OpenStreetMap Nominatim."""
+    normalized_address = _clean_text(address)
+    if not normalized_address:
+        return None
+
+    query = normalized_address if not country else f"{normalized_address}, {country}"
+    geocoding_url = (
+        "https://nominatim.openstreetmap.org/search"
+        f"?format=jsonv2&limit=1&q={quote_plus(query)}"
+    )
+
+    active_fetcher = fetcher or _fetch_geocoding_response
+    raw_payload = active_fetcher(geocoding_url, timeout)
+
+    try:
+        results = json.loads(raw_payload)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("Failed to decode geocoding response.") from exc
+
+    if not isinstance(results, list) or not results:
+        return None
+
+    first_result = results[0]
+    try:
+        lat = float(first_result["lat"])
+        lng = float(first_result["lon"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+    return lat, lng
+
+
 def get_db_connection(db_path: str | Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     """Open the shared JobSeeker SQLite database and ensure the jobs table exists."""
     resolved_path = Path(db_path)
@@ -173,14 +214,29 @@ def get_db_connection(db_path: str | Path = DEFAULT_DB_PATH) -> sqlite3.Connecti
     return connection
 
 
-def insert_jobs_into_db(jobs: list[dict[str, str]], db_path: str | Path = DEFAULT_DB_PATH) -> int:
+def insert_jobs_into_db(
+    jobs: list[dict[str, str]],
+    db_path: str | Path = DEFAULT_DB_PATH,
+    *,
+    geocoder: Callable[[str], tuple[float, float] | None] | None = None,
+    geocoding_delay_seconds: float = DEFAULT_GEOCODING_DELAY,
+) -> int:
     """Insert or update scraped jobs in the shared SQLite database."""
     connection = get_db_connection(db_path)
     inserted_count = 0
+    geocode_cache: dict[str, tuple[float, float] | None] = {}
+    active_geocoder = geocoder or geocode_address
 
     try:
         for job in jobs:
             salary_min, salary_max = parse_salary_range(job.get("salary", ""))
+            lat, lng = _resolve_job_coordinates(
+                job.get("location", ""),
+                geocoder=active_geocoder,
+                cache=geocode_cache,
+                geocoding_delay_seconds=geocoding_delay_seconds,
+                should_delay=geocoder is None,
+            )
             connection.execute(
                 """
                 INSERT INTO jobs (
@@ -201,6 +257,8 @@ def insert_jobs_into_db(jobs: list[dict[str, str]], db_path: str | Path = DEFAUL
                     salary_min = excluded.salary_min,
                     salary_max = excluded.salary_max,
                     address = excluded.address,
+                    lat = excluded.lat,
+                    lng = excluded.lng,
                     scraped_at = datetime('now')
                 """,
                 (
@@ -210,8 +268,8 @@ def insert_jobs_into_db(jobs: list[dict[str, str]], db_path: str | Path = DEFAUL
                     salary_max,
                     None,
                     job.get("location") or None,
-                    None,
-                    None,
+                    lat,
+                    lng,
                     job["url"],
                 ),
             )
@@ -253,11 +311,21 @@ def main(argv: list[str] | None = None) -> int:
         default=0.5,
         help="Delay in seconds between requests. Default: 0.5",
     )
+    parser.add_argument(
+        "--geocoding-delay",
+        type=float,
+        default=DEFAULT_GEOCODING_DELAY,
+        help=f"Delay in seconds between external geocoding requests. Default: {DEFAULT_GEOCODING_DELAY}",
+    )
     args = parser.parse_args(argv)
 
     count = args.count if args.count is not None else _prompt_for_count()
     jobs = scrape_jobs(count, start_url=args.start_url, delay_seconds=args.delay)
-    written_count = insert_jobs_into_db(jobs, args.db_path)
+    written_count = insert_jobs_into_db(
+        jobs,
+        args.db_path,
+        geocoding_delay_seconds=args.geocoding_delay,
+    )
 
     print(f"Scraped {len(jobs)} job listings.")
     print(f"Inserted or updated {written_count} job listings in {Path(args.db_path).resolve()}")
@@ -307,6 +375,58 @@ def _normalize_description(parts: list[str]) -> str:
 
 def _has_class(attrs: dict[str, str], class_name: str) -> bool:
     return class_name in attrs.get("class", "").split()
+
+
+def _fetch_geocoding_response(url: str, timeout: int) -> str:
+    request = Request(
+        url,
+        headers={
+            **DEFAULT_HEADERS,
+            "Accept": "application/json",
+        },
+    )
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            charset = response.headers.get_content_charset() or "utf-8"
+            return response.read().decode(charset)
+    except HTTPError as exc:
+        raise RuntimeError(f"HTTP error {exc.code} while geocoding {url}") from exc
+    except URLError as exc:
+        raise RuntimeError(f"Could not geocode {url}: {exc.reason}") from exc
+
+
+def _resolve_job_coordinates(
+    location: str,
+    *,
+    geocoder: Callable[[str], tuple[float, float] | None],
+    cache: dict[str, tuple[float, float] | None],
+    geocoding_delay_seconds: float,
+    should_delay: bool,
+) -> tuple[float | None, float | None]:
+    normalized_location = _clean_text(location)
+    if not normalized_location:
+        return None, None
+
+    cache_key = normalized_location.lower()
+    if cache_key in cache:
+        cached = cache[cache_key]
+        if cached is None:
+            return None, None
+        return cached
+
+    try:
+        coordinates = geocoder(normalized_location)
+    except Exception:
+        coordinates = None
+    cache[cache_key] = coordinates
+
+    if should_delay and geocoding_delay_seconds > 0:
+        time.sleep(geocoding_delay_seconds)
+
+    if coordinates is None:
+        return None, None
+
+    return coordinates
 
 
 class _ListingPageParser(HTMLParser):

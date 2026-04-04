@@ -193,13 +193,13 @@ class ExportTests(unittest.TestCase):
 class SalaryParsingTests(unittest.TestCase):
     def test_parse_salary_range_extracts_bounds(self):
         self.assertEqual(
-            scrape.parse_salary_range("3400-4400 €/mon. neatskaičius mokesčių"),
+            scrape.parse_salary_range("3400-4400 EUR/mon."),
             (3400.0, 4400.0),
         )
 
     def test_parse_salary_range_returns_single_value_for_fixed_salary(self):
         self.assertEqual(
-            scrape.parse_salary_range("Nuo 2500 €/mon."),
+            scrape.parse_salary_range("Nuo 2500 EUR/mon."),
             (2500.0, 2500.0),
         )
 
@@ -207,41 +207,78 @@ class SalaryParsingTests(unittest.TestCase):
         self.assertEqual(scrape.parse_salary_range(""), (None, None))
 
 
+class GeocodingTests(unittest.TestCase):
+    def test_geocode_address_returns_coordinates(self):
+        result = scrape.geocode_address(
+            "Vilnius",
+            fetcher=lambda url, timeout: '[{"lat":"54.6872","lon":"25.2797"}]',
+        )
+
+        self.assertEqual(result, (54.6872, 25.2797))
+
+    def test_geocode_address_returns_none_for_empty_results(self):
+        result = scrape.geocode_address(
+            "Unknown place",
+            fetcher=lambda url, timeout: "[]",
+        )
+
+        self.assertIsNone(result)
+
+
 class DatabaseInsertTests(unittest.TestCase):
     def test_insert_jobs_into_db_creates_and_updates_jobs(self):
         jobs = [
             {
                 "title": "Operations Manager",
-                "salary": "3400-4400 €/mon. neatskaičius mokesčių",
+                "salary": "3400-4400 EUR/mon.",
                 "description": "Example description",
-                "location": "Švitrigailos g. 34, LT-03230 Vilnius",
+                "location": "Svitrigailos g. 34, LT-03230 Vilnius",
                 "url": "https://www.cvbankas.lt/operations-manager-kaune/1-13732953",
             }
         ]
 
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / "jobfinder.db"
+            geocoder_calls = []
 
-            inserted = scrape.insert_jobs_into_db(jobs, db_path)
+            def fake_geocoder(address):
+                geocoder_calls.append(address)
+                if "Vilnius" in address:
+                    return (54.6872, 25.2797)
+                if "Kaunas" in address:
+                    return (54.8985, 23.9036)
+                return None
+
+            inserted = scrape.insert_jobs_into_db(
+                jobs,
+                db_path,
+                geocoder=fake_geocoder,
+                geocoding_delay_seconds=0.0,
+            )
             self.assertEqual(inserted, 1)
 
             updated_jobs = [
                 {
                     "title": "Senior Operations Manager",
-                    "salary": "5000 €/mon.",
+                    "salary": "5000 EUR/mon.",
                     "description": "Updated description",
                     "location": "Kaunas",
                     "url": "https://www.cvbankas.lt/operations-manager-kaune/1-13732953",
                 }
             ]
 
-            updated = scrape.insert_jobs_into_db(updated_jobs, db_path)
+            updated = scrape.insert_jobs_into_db(
+                updated_jobs,
+                db_path,
+                geocoder=fake_geocoder,
+                geocoding_delay_seconds=0.0,
+            )
             self.assertEqual(updated, 1)
 
             with sqlite3.connect(db_path) as connection:
                 row = connection.execute(
                     """
-                    SELECT title, salary_min, salary_max, address, url
+                    SELECT title, salary_min, salary_max, address, lat, lng, url
                     FROM jobs
                     """
                 ).fetchone()
@@ -253,9 +290,47 @@ class DatabaseInsertTests(unittest.TestCase):
                 5000.0,
                 5000.0,
                 "Kaunas",
+                54.8985,
+                23.9036,
                 "https://www.cvbankas.lt/operations-manager-kaune/1-13732953",
             ),
         )
+        self.assertEqual(geocoder_calls, ["Svitrigailos g. 34, LT-03230 Vilnius", "Kaunas"])
+
+    def test_insert_jobs_into_db_reuses_cached_coordinates_for_same_address(self):
+        jobs = [
+            {
+                "title": "Role One",
+                "salary": "2000 EUR/mon.",
+                "description": "One",
+                "location": "Vilnius",
+                "url": "https://example.com/job/1",
+            },
+            {
+                "title": "Role Two",
+                "salary": "2200 EUR/mon.",
+                "description": "Two",
+                "location": "Vilnius",
+                "url": "https://example.com/job/2",
+            },
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            db_path = Path(temp_dir) / "jobfinder.db"
+            geocoder_calls = []
+
+            def fake_geocoder(address):
+                geocoder_calls.append(address)
+                return (54.6872, 25.2797)
+
+            scrape.insert_jobs_into_db(
+                jobs,
+                db_path,
+                geocoder=fake_geocoder,
+                geocoding_delay_seconds=0.0,
+            )
+
+        self.assertEqual(geocoder_calls, ["Vilnius"])
 
 
 if __name__ == "__main__":
