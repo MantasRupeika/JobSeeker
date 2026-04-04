@@ -64,6 +64,21 @@
     return "Not specified";
   }
 
+  function formatJobType(jobType) {
+    var normalized = normalizeText(jobType);
+
+    if (!normalized) {
+      return "Not specified";
+    }
+
+    return normalized
+      .split("-")
+      .map(function (word) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      })
+      .join("-");
+  }
+
   function normalizeText(value) {
     return String(value || "").trim().toLowerCase();
   }
@@ -175,13 +190,17 @@
   }
 
   function buildPopupHtml(job) {
+    var jobUrl = job.url ? String(job.url).trim() : "";
+
     return [
-      '<div class="map-popup">',
-      '<strong>' + escapeHtml(job.title || "Untitled role") + '</strong>',
-      '<div>' + escapeHtml(job.company || "Not specified") + '</div>',
-      '<div>' + escapeHtml(job.location || "Not specified") + '</div>',
-      '<div>' + escapeHtml(formatSalary(job.salaryMin, job.salaryMax)) + '</div>',
-      '</div>'
+      '<article class="map-job-card">',
+      '<h3 class="map-job-title">' + escapeHtml(job.title || "Untitled role") + '</h3>',
+      '<p class="map-job-meta"><span class="map-job-label">Company:</span> ' + escapeHtml(job.company || "Not specified") + '</p>',
+      '<p class="map-job-meta"><span class="map-job-label">Location:</span> ' + escapeHtml(job.location || "Not specified") + '</p>',
+      '<p class="map-job-meta"><span class="map-job-label">Salary:</span> ' + escapeHtml(formatSalary(job.salaryMin, job.salaryMax)) + '</p>',
+      '<p class="map-job-meta"><span class="map-job-label">Type:</span> ' + escapeHtml(formatJobType(job.jobType)) + '</p>',
+      jobUrl ? '<a class="map-job-link" href="' + escapeHtml(jobUrl) + '" target="_blank" rel="noopener noreferrer">Open listing</a>' : '',
+      '</article>'
     ].join("");
   }
 
@@ -241,7 +260,10 @@
 
     visibleJobs.forEach(function (entry) {
       var marker = window.L.marker([entry.coordinates.lat, entry.coordinates.lng]);
-      marker.bindPopup(buildPopupHtml(entry.job));
+      marker.bindPopup(buildPopupHtml(entry.job), {
+        maxWidth: 320,
+        className: "job-map-popup"
+      });
       marker.addTo(markerLayer);
       bounds.push([entry.coordinates.lat, entry.coordinates.lng]);
     });
