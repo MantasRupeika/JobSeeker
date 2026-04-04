@@ -20,7 +20,6 @@
   var allJobs = [];
   var mapInstance = null;
   var markerLayer = null;
-  var geocodeCache = new Map();
   var mapUpdateToken = 0;
 
   initializeMap();
@@ -76,11 +75,6 @@
       .replace(/>/g, "&gt;")
       .replace(/\"/g, "&quot;")
       .replace(/'/g, "&#39;");
-  }
-
-  function parseNumber(value) {
-    var parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
   }
 
   function salaryMatches(job, minFilter, maxFilter) {
@@ -191,71 +185,14 @@
     ].join("");
   }
 
-  async function geocodeLocation(locationText) {
-    var locationKey = normalizeText(locationText);
-
-    if (!locationKey) {
-      return null;
-    }
-
-    if (geocodeCache.has(locationKey)) {
-      return geocodeCache.get(locationKey);
-    }
-
-    var lookup = fetch(
-      "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" +
-        encodeURIComponent(locationText + ", Lithuania"),
-      {
-        headers: {
-          Accept: "application/json"
-        }
-      }
-    )
-      .then(function (response) {
-        if (!response.ok) {
-          throw new Error("Unable to geocode location.");
-        }
-
-        return response.json();
-      })
-      .then(function (results) {
-        if (!Array.isArray(results) || results.length === 0) {
-          return null;
-        }
-
-        var firstResult = results[0];
-        var lat = Number(firstResult.lat);
-        var lng = Number(firstResult.lon);
-
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-          return null;
-        }
-
-        return {
-          lat: lat,
-          lng: lng
-        };
-      })
-      .catch(function () {
-        return null;
-      });
-
-    geocodeCache.set(locationKey, lookup);
-    return lookup;
-  }
-
   async function getJobCoordinates(job) {
-    var lat = parseNumber(job.lat);
-    var lng = parseNumber(job.lng);
-
-    if (lat !== null && lng !== null) {
-      return {
-        lat: lat,
-        lng: lng
-      };
+    if (window.geocodingService && typeof window.geocodingService.geocodeAddress === "function") {
+      return window.geocodingService.geocodeAddress(job.location, {
+        country: "Lithuania"
+      });
     }
 
-    return geocodeLocation(job.location);
+    return null;
   }
 
   async function updateMap(jobs) {

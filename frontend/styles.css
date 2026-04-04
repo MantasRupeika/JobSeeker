@@ -352,12 +352,12 @@ body.auth-page {
 }
 
 .jobs-status.is-error {
-  color: #000000;
+  color: #ffd3ce;
 }
 
 .jobs-count {
   margin: 0 0 12px;
-  color: #000000;
+  color: #eef5f9;
   font-weight: 500;
 }
 
