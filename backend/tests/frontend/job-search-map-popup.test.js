@@ -28,4 +28,17 @@ describe('job-search map marker info card popup', () => {
     expect(script).toMatch(/className:\s*"job-map-popup"/);
     expect(script).toMatch(/maxWidth:\s*320/);
   });
+
+  test('clears marker layer immediately before async remapping', () => {
+    const updateMapBodyMatch = script.match(/async function updateMap\(jobs\)\s*\{([\s\S]*?)\n\s*}\n\n\s*function renderJobs/);
+    expect(updateMapBodyMatch).not.toBeNull();
+
+    const updateMapBody = updateMapBodyMatch[1];
+    const clearIndex = updateMapBody.indexOf('markerLayer.clearLayers();');
+    const promiseAllIndex = updateMapBody.indexOf('await Promise.all(');
+
+    expect(clearIndex).toBeGreaterThan(-1);
+    expect(promiseAllIndex).toBeGreaterThan(-1);
+    expect(clearIndex).toBeLessThan(promiseAllIndex);
+  });
 });

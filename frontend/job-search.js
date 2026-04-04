@@ -226,6 +226,7 @@
     }
 
     var updateToken = ++mapUpdateToken;
+    markerLayer.clearLayers();
     setMapStatus("Updating map...", false);
 
     var mappedJobs = await Promise.all(
@@ -246,8 +247,6 @@
     if (updateToken !== mapUpdateToken) {
       return;
     }
-
-    markerLayer.clearLayers();
 
     var visibleJobs = mappedJobs.filter(Boolean);
 
