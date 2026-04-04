@@ -5,6 +5,7 @@ const { runMigrations } = require('./db/migrations');
 const authRoutes = require('./routes/auth');
 const jobsRoutes = require('./routes/jobs');
 const cvRoutes = require('./routes/cv');
+const savedJobsRoutes = require('./routes/saved-jobs');
 
 const app = express();
 
@@ -15,6 +16,7 @@ runMigrations();
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/cv', cvRoutes);
+app.use('/api/saved-jobs', savedJobsRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
