@@ -258,8 +258,10 @@
     return [
       '<article class="map-job-card">',
       '<h3 class="map-job-title">' + escapeHtml(job.title || "Untitled role") + '</h3>',
+      '<p class="map-job-meta"><span class="map-job-label">Company:</span> ' + escapeHtml(job.company) + '</p>',
       '<p class="map-job-meta"><span class="map-job-label">Location:</span> ' + escapeHtml(job.location) + '</p>',
       '<p class="map-job-meta"><span class="map-job-label">Salary:</span> ' + escapeHtml(formatSalary(job.salaryMin, job.salaryMax)) + '</p>',
+      '<p class="map-job-meta"><span class="map-job-label">Type:</span> ' + escapeHtml(job.jobType || "") + '</p>',
       jobUrl ? '<a class="map-job-link" href="' + escapeHtml(jobUrl) + '" target="_blank" rel="noopener noreferrer">Open listing</a>' : '',
       '</article>'
     ].join("");
@@ -369,6 +371,11 @@
       var titleNode = clone.querySelector(".job-title");
       if (titleNode) {
         titleNode.textContent = job.title || "Untitled role";
+      }
+
+      var companyNode = clone.querySelector('[data-job="company"]');
+      if (companyNode) {
+        companyNode.textContent = job.company || "";
       }
 
       var locationNode = clone.querySelector('[data-job="location"]');
