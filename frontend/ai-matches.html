@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeeker | AI Matches</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="jobs-page has-site-nav ai-page">
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="site-nav__brand" href="job-search.html">JobSeeker</a>
+    <div class="site-nav__links">
+      <a href="job-search.html">Jobs</a>
+      <a href="ai-matches.html" aria-current="page">AI Matches</a>
+      <a href="saved-jobs.html">Saved Jobs</a>
+      <a href="cv.html">CV</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </nav>
+
+  <main class="ai-main">
+    <section class="ai-hero">
+      <p class="ai-kicker">AI job matching</p>
+      <h1>Find the best jobs for your CV</h1>
+      <p>
+        Choose one of your saved CVs and JobSeeker will compare it with the jobs stored in the database.
+        The highest scoring roles are shown first.
+      </p>
+    </section>
+
+    <section class="ai-layout" aria-label="AI job matching workspace">
+      <section class="ai-control-panel" aria-labelledby="ai-control-heading">
+        <h2 id="ai-control-heading">Send CV to matcher</h2>
+        <p class="ai-muted">The current version uses a local scoring algorithm, so your CV text stays in the browser.</p>
+
+        <label class="filter-field" for="cvSelect">
+          <span>Select CV</span>
+          <select id="cvSelect">
+            <option value="">Loading CVs...</option>
+          </select>
+        </label>
+
+        <article id="selectedCvPreview" class="ai-cv-preview" aria-live="polite">
+          <p>Select a CV to preview the information used for matching.</p>
+        </article>
+
+        <button id="runMatchBtn" class="ai-primary-btn" type="button">Find matching jobs</button>
+        <p id="aiFeedback" class="form-feedback" role="status" aria-live="polite"></p>
+
+        <div id="aiLoader" class="ai-loader" hidden>
+          <div class="ai-loader__orb" aria-hidden="true"></div>
+          <div>
+            <strong>AI is calculating matches...</strong>
+            <p id="aiLoaderStep">Reading selected CV</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="ai-results-panel" aria-labelledby="ai-results-heading">
+        <div class="ai-results-header">
+          <div>
+            <h2 id="ai-results-heading">Recommended jobs</h2>
+            <p id="aiResultsSummary">Run matching to see personalized job suggestions.</p>
+          </div>
+        </div>
+
+        <section id="aiResultsGrid" class="ai-results-grid" aria-label="AI recommended jobs"></section>
+      </section>
+    </section>
+
+    <template id="aiMatchCardTemplate">
+      <article class="ai-match-card">
+        <div class="ai-score-row">
+          <div class="ai-score-ring" data-job="score-ring">
+            <span data-job="score"></span>
+          </div>
+          <div>
+            <p class="ai-score-label">Match score</p>
+            <p class="ai-stars" data-job="stars" aria-label="Star rating"></p>
+          </div>
+        </div>
+        <h3 data-job="title"></h3>
+        <p class="job-meta"><span class="meta-label">Location:</span> <span data-job="location"></span></p>
+        <p class="job-meta"><span class="meta-label">Salary:</span> <span data-job="salary"></span></p>
+        <p class="ai-reason" data-job="reason"></p>
+        <div class="job-actions">
+          <a data-job="open-link" class="ai-secondary-link" target="_blank" rel="noopener noreferrer">Open listing</a>
+          <button type="button" class="save-job-btn" data-job="save-button">Save</button>
+        </div>
+      </article>
+    </template>
+  </main>
+
+  <script src="ai-matches.js"></script>
+</body>
+</html>
