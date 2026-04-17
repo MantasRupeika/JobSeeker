@@ -17,62 +17,6 @@
   box-sizing: border-box;
 }
 
-/* Navbar Styles */
-.navbar {
-  background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid));
-  padding: 14px 0;
-  box-shadow: 0 4px 12px rgba(4, 18, 29, 0.15);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.navbar-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.navbar-logo {
-  margin: 0;
-  font-family: "Fraunces", "Georgia", serif;
-  font-size: 1.4rem;
-  color: #f6fafc;
-  font-weight: 500;
-}
-
-.navbar-menu {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  gap: 24px;
-  align-items: center;
-}
-
-.navbar-link {
-  color: #dce7ee;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-  font-size: 0.95rem;
-}
-
-.navbar-link:hover {
-  color: var(--accent);
-}
-
-.navbar-link.logout-link {
-  color: #f88f2a;
-}
-
-.navbar-link.logout-link:hover {
-  color: #e47500;
-}
-
 body.auth-page {
   margin: 0;
   min-height: 100vh;
