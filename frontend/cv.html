@@ -54,7 +54,8 @@
         </div>
 
         <div class="form-row">
-          <button type="submit">Save CV</button>
+          <button id="submitBtn" type="submit">Save CV</button>
+          <button id="backBtn" class="secondary-btn" type="button">Back</button>
         </div>
       </form>
 
@@ -86,9 +87,214 @@
         </div>
       </section>
 
-      <p class="auth-switch">Need to sign in first? <a href="login.html">Go to Login</a></p>
+      <p class="auth-switch">Back to <a href="profile.html">Profile</a></p>
     </section>
   </main>
-  <script src="cv-preview.js"></script>
+  <script>
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action') || 'create';
+    const cvId = urlParams.get('id');
+
+    const form = document.getElementById("cvForm");
+    const cvHeading = document.getElementById("cv-heading");
+    const cvSubtitle = document.querySelector(".auth-subtitle");
+    const previewBtn = document.getElementById("previewBtn");
+    const previewContainer = document.getElementById("cvPreview");
+    const closePreviewBtn = document.getElementById("closePreviewBtn");
+    const phoneInput = document.getElementById("phone");
+    const feedback = document.getElementById("cvFeedback");
+    const submitBtn = document.getElementById("submitBtn");
+    const backBtn = document.getElementById("backBtn");
+
+    let hasPreview = false;
+
+    // Update page title and heading based on action
+    if (action === 'edit') {
+      cvHeading.textContent = "Update Your CV";
+      cvSubtitle.textContent = "Edit your CV details below.";
+      submitBtn.textContent = "Update CV";
+      loadCVForEditing();
+    } else {
+      cvHeading.textContent = "Create Your CV";
+      cvSubtitle.textContent = "Fill in all required details to build your CV profile.";
+      submitBtn.textContent = "Save CV";
+    }
+
+    function setFeedback(message, isError) {
+      if (!feedback) return;
+      feedback.textContent = message || "";
+      feedback.classList.remove("is-error", "is-success");
+
+      if (isError) {
+        feedback.classList.add("is-error");
+      } else if (message) {
+        feedback.classList.add("is-success");
+      }
+    }
+
+    function valueOrFallback(value) {
+      if (!value) return "-";
+      return String(value).trim() || "-";
+    }
+
+    function loadCVForEditing() {
+      try {
+        const raw = localStorage.getItem("userCVs");
+        const cvs = raw ? JSON.parse(raw) : [];
+        const cv = cvs.find(c => c.id === cvId);
+
+        if (!cv) {
+          setFeedback("CV not found.", true);
+          return;
+        }
+
+        // Populate form with CV data
+        document.getElementById("name").value = cv.name || "";
+        document.getElementById("email").value = cv.email || "";
+        document.getElementById("phone").value = cv.phone || "";
+        document.getElementById("education").value = cv.education || "";
+        document.getElementById("experience").value = cv.experience || "";
+        document.getElementById("skills").value = cv.skills || "";
+      } catch (_error) {
+        setFeedback("Error loading CV data.", true);
+      }
+    }
+
+    function renderPreview() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const phone = document.getElementById("phone").value;
+      const education = document.getElementById("education").value;
+      const experience = document.getElementById("experience").value;
+      const skills = document.getElementById("skills").value;
+      const fileInput = document.getElementById("cvFile");
+
+      document.getElementById("previewName").textContent = valueOrFallback(name);
+      document.getElementById("previewEmail").textContent = valueOrFallback(email);
+      document.getElementById("previewPhone").textContent = valueOrFallback(phone);
+      document.getElementById("previewEducation").textContent = valueOrFallback(education);
+      document.getElementById("previewExperience").textContent = valueOrFallback(experience);
+      document.getElementById("previewSkills").textContent = valueOrFallback(skills);
+      document.getElementById("previewFile").textContent =
+        fileInput && fileInput.files && fileInput.files[0]
+          ? fileInput.files[0].name
+          : "-";
+
+      previewContainer.hidden = false;
+      hasPreview = true;
+      submitBtn.disabled = false;
+
+      setFeedback("Preview generated. You can now save your CV.", false);
+    }
+
+    function closePreview() {
+      previewContainer.hidden = true;
+    }
+
+    function invalidatePreview() {
+      hasPreview = false;
+      previewContainer.hidden = true;
+      submitBtn.disabled = true;
+      if (feedback && feedback.classList.contains("is-success")) {
+        setFeedback("Form changed. Generate preview again before saving.", true);
+      }
+    }
+
+    submitBtn.disabled = true;
+
+    if (phoneInput) {
+      phoneInput.addEventListener("input", function () {
+        phoneInput.value = phoneInput.value.replace(/\D+/g, "");
+      });
+    }
+
+    previewBtn.addEventListener("click", function () {
+      if (!form.checkValidity()) {
+        setFeedback("Fill all required fields before previewing.", true);
+        return;
+      }
+      renderPreview();
+    });
+
+    if (closePreviewBtn) {
+      closePreviewBtn.addEventListener("click", closePreview);
+    }
+
+    previewContainer.addEventListener("click", function (event) {
+      if (event.target === previewContainer) {
+        closePreview();
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !previewContainer.hidden) {
+        closePreview();
+      }
+    });
+
+    form.querySelectorAll("input, textarea").forEach(function (field) {
+      field.addEventListener("input", invalidatePreview);
+      field.addEventListener("change", invalidatePreview);
+    });
+
+    backBtn.addEventListener("click", function () {
+      window.location.href = "profile.html";
+    });
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      if (!hasPreview) {
+        setFeedback("Generate preview before saving your CV.", true);
+        return;
+      }
+
+      const cvData = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        education: document.getElementById("education").value,
+        experience: document.getElementById("experience").value,
+        skills: document.getElementById("skills").value
+      };
+
+      try {
+        const raw = localStorage.getItem("userCVs");
+        let cvs = raw ? JSON.parse(raw) : [];
+
+        if (action === 'edit' && cvId) {
+          // Update existing CV
+          const index = cvs.findIndex(cv => cv.id === cvId);
+          if (index !== -1) {
+            cvs[index] = {
+              ...cvs[index],
+              ...cvData,
+              updatedAt: new Date().toISOString()
+            };
+          }
+        } else {
+          // Create new CV
+          const newCV = {
+            id: Date.now().toString(),
+            ...cvData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          cvs.push(newCV);
+        }
+
+        localStorage.setItem("userCVs", JSON.stringify(cvs));
+        setFeedback("CV saved successfully!", false);
+        
+        // Redirect back to profile after 1 second
+        setTimeout(() => {
+          window.location.href = "profile.html";
+        }, 1000);
+      } catch (_error) {
+        setFeedback("Error saving CV.", true);
+      }
+    });
+  </script>
 </body>
 </html>

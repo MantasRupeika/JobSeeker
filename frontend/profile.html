@@ -7,6 +7,18 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="profile-page">
+  <!-- Navigation Header -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <h2 class="navbar-logo">JobSeeker</h2>
+      <ul class="navbar-menu">
+        <li><a href="profile.html" class="navbar-link">Profile</a></li>
+        <li><a href="job-search.html" class="navbar-link">Search Jobs</a></li>
+        <li><a href="login.html" id="logoutBtn" class="navbar-link logout-link">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
   <div class="profile-wrapper">
     <div class="profile-container">
       <!-- Profile Header -->
@@ -211,9 +223,76 @@
 
     // Add CV button
     document.getElementById('addCvBtn').addEventListener('click', () => {
-      alert('Redirecting to CV editor...');
-      // window.location.href = 'cv-preview.html';
+      window.location.href = 'cv.html?action=create';
     });
+
+    // Load and display CVs
+    function getStoredCVs() {
+      try {
+        const raw = localStorage.getItem("userCVs");
+        return raw ? JSON.parse(raw) : [];
+      } catch (_error) {
+        return [];
+      }
+    }
+
+    function renderCVList() {
+      const cvs = getStoredCVs();
+      const cvListContainer = document.getElementById('cvListContainer');
+      const cvEmptyState = document.getElementById('cvEmptyState');
+      
+      if (cvs.length === 0) {
+        cvEmptyState.style.display = 'block';
+        cvListContainer.innerHTML = '';
+        return;
+      }
+
+      cvEmptyState.style.display = 'none';
+      cvListContainer.innerHTML = '';
+
+      cvs.forEach(cv => {
+        const cvCard = document.createElement('div');
+        cvCard.className = 'cv-card';
+        const createdDate = new Date(cv.createdAt).toLocaleDateString();
+        
+        cvCard.innerHTML = `
+          <h3>${cv.name || 'Unnamed CV'}</h3>
+          <p class="cv-info">Email: ${cv.email || '-'}</p>
+          <p class="cv-info">Phone: ${cv.phone || '-'}</p>
+          <p class="cv-info">Created: ${createdDate}</p>
+          <div class="cv-actions">
+            <button class="cv-edit-btn" data-id="${cv.id}">Edit</button>
+            <button class="cv-delete-btn" data-id="${cv.id}">Delete</button>
+          </div>
+        `;
+        
+        cvListContainer.appendChild(cvCard);
+      });
+
+      // Add event listeners for edit buttons
+      document.querySelectorAll('.cv-edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cvId = btn.getAttribute('data-id');
+          window.location.href = `cv.html?action=edit&id=${cvId}`;
+        });
+      });
+
+      // Add event listeners for delete buttons
+      document.querySelectorAll('.cv-delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cvId = btn.getAttribute('data-id');
+          if (confirm('Are you sure you want to delete this CV?')) {
+            let cvs = getStoredCVs();
+            cvs = cvs.filter(cv => cv.id !== cvId);
+            localStorage.setItem('userCVs', JSON.stringify(cvs));
+            renderCVList();
+          }
+        });
+      });
+    }
+
+    // Initial render of CVs
+    renderCVList();
 
   </script>
 </body>
