@@ -582,3 +582,314 @@ body.auth-page {
 .save-job-btn:hover {
   opacity: 0.9;
 }
+
+/* Profile page */
+.profile-page {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Outfit", "Trebuchet MS", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 14% 16%, rgba(248, 143, 42, 0.18), transparent 30%),
+    radial-gradient(circle at 85% 75%, rgba(98, 173, 208, 0.16), transparent 34%),
+    linear-gradient(135deg, #f3f8fb, #e7f0f6);
+}
+
+.profile-page .profile-wrapper {
+  min-height: 100vh;
+}
+
+.profile-page .profile-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 18px 44px;
+}
+
+.profile-page .profile-header {
+  background: linear-gradient(135deg, #1f3a4d, #122432);
+  color: #f6fafc;
+  padding: 32px 26px;
+  border-radius: 16px;
+  margin-bottom: 22px;
+  box-shadow: 0 16px 30px rgba(4, 18, 29, 0.26);
+}
+
+.profile-page .profile-header h1 {
+  margin: 0;
+  font-family: "Fraunces", "Georgia", serif;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.profile-page .user-info {
+  margin-top: 10px;
+  color: #dce7ee;
+}
+
+.profile-page .user-info p {
+  margin: 0;
+}
+
+.profile-page .user-email {
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.profile-page .tabs-nav {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  overflow-x: auto;
+  border-bottom: 2px solid rgba(31, 58, 77, 0.16);
+}
+
+.profile-page .tab-button {
+  padding: 12px 18px;
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: #3d5363;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-page .tab-button:hover {
+  color: #1f3a4d;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.profile-page .tab-button.active {
+  color: #122432;
+  border-bottom-color: #f88f2a;
+}
+
+.profile-page .tab-content {
+  display: none;
+}
+
+.profile-page .tab-content.active {
+  display: block;
+}
+
+.profile-page .cv-section,
+.profile-page .history-section,
+.profile-page .settings-section {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(246, 250, 252, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 14px 30px rgba(4, 18, 29, 0.15);
+}
+
+.profile-page .add-cv-btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  cursor: pointer;
+}
+
+.profile-page .cv-list {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.profile-page .cv-card {
+  width: auto;
+  margin-top: 0;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  padding: 14px;
+  box-shadow: 0 8px 18px rgba(18, 36, 50, 0.08);
+}
+
+.profile-page .cv-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.profile-page .cv-info,
+.profile-page .cv-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.profile-page .cv-description {
+  margin-top: 8px;
+}
+
+.profile-page .cv-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.profile-page .cv-actions button {
+  flex: 1;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.profile-page .cv-edit-btn {
+  color: #ffffff;
+  background: #1f3a4d;
+}
+
+.profile-page .cv-delete-btn {
+  color: #842029;
+  background: #f8d7da;
+}
+
+.profile-page .history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.profile-page .history-table th,
+.profile-page .history-table td {
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(20, 33, 43, 0.1);
+  font-size: 0.92rem;
+}
+
+.profile-page .history-table th {
+  color: #2e4655;
+  font-weight: 700;
+}
+
+.profile-page .status-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.profile-page .status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.profile-page .status-viewed {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.profile-page .status-accepted {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.profile-page .status-rejected {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.profile-page .history-empty,
+.profile-page .empty-state {
+  margin: 12px 0 2px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.profile-page .settings-section {
+  max-width: 680px;
+}
+
+.profile-page .form-group {
+  margin-bottom: 14px;
+}
+
+.profile-page .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #2e4655;
+}
+
+.profile-page .form-group input,
+.profile-page .form-group textarea,
+.profile-page .form-group select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  padding: 10px 11px;
+  background: #ffffff;
+}
+
+.profile-page .form-group textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.profile-page .form-group input:focus,
+.profile-page .form-group textarea:focus,
+.profile-page .form-group select:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(11, 127, 171, 0.2);
+}
+
+.profile-page .form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.profile-page .btn-save,
+.profile-page .btn-cancel {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-page .btn-save {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+}
+
+.profile-page .btn-cancel {
+  color: #14212b;
+  background: linear-gradient(135deg, #e8f0f4, #d2e1ea);
+}
+
+@media (max-width: 700px) {
+  .profile-page .profile-container {
+    padding: 20px 14px 34px;
+  }
+
+  .profile-page .profile-header {
+    padding: 24px 18px;
+  }
+
+  .profile-page .profile-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .profile-page .form-actions {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile - JobSeeker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="profile-page">
+  <div class="profile-wrapper">
+    <div class="profile-container">
+      <!-- Profile Header -->
+      <div class="profile-header">
+        <h1 id="profileUserName">User Name</h1>
+        <div class="user-info">
+          <p>User Profile</p>
+          <p class="user-email">📧 <span id="profileUserEmail">user@example.com</span></p>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <ul class="tabs-nav">
+        <li>
+          <button class="tab-button active" data-tab="cv">
+            📄 My CV
+          </button>
+        </li>
+        <li>
+          <button class="tab-button" data-tab="history">
+            📤 Send History
+          </button>
+        </li>
+        <li>
+          <button class="tab-button" data-tab="settings">
+            ⚙️ Profile Settings
+          </button>
+        </li>
+      </ul>
+
+      <!-- CV Tab -->
+      <div id="cv" class="tab-content active">
+        <div class="cv-section">
+          <button class="add-cv-btn" id="addCvBtn">+ Add New CV</button>
+
+          <div class="cv-list" id="cvListContainer">
+            <p class="empty-state" id="cvEmptyState">No CVs yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Tab -->
+      <div id="history" class="tab-content">
+        <div class="history-section">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Sent Date</th>
+                <th>CV Used</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+            </tbody>
+          </table>
+          <p class="history-empty" id="historyEmptyState">No send history yet.</p>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="settings" class="tab-content">
+        <div class="settings-section">
+          <form id="settingsForm">
+            <div class="form-group">
+              <label for="fullName">Full Name</label>
+              <input type="text" id="fullName" name="fullName" required>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone">
+            </div>
+
+            <div class="form-group">
+              <label for="profession">Profession / Job Title</label>
+              <input type="text" id="profession" name="profession">
+            </div>
+
+            <div class="form-group">
+              <label for="city">City</label>
+              <input type="text" id="city" name="city">
+            </div>
+
+            <div class="form-group">
+              <label for="bio">About Me</label>
+              <textarea id="bio" name="bio" placeholder="Write a short description about yourself..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="notifications">Email Notifications</label>
+              <select id="notifications" name="notifications">
+                <option value="all">Receive all notifications</option>
+                <option value="important">Important notifications only</option>
+                <option value="none">No notifications</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-save">Save Changes</button>
+              <button type="reset" class="btn-cancel">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="profile.js"></script>
+</body>
+</html>
