@@ -5,6 +5,32 @@ const { validateCvInput } = require('../validation/cv');
 
 const router = express.Router();
 
+router.get('/', authMiddleware, (req, res) => {
+  try {
+    const rows = db
+      .prepare('SELECT * FROM cvs WHERE user_id = ? ORDER BY datetime(created_at) DESC, id DESC')
+      .all(req.user.id);
+
+    const result = rows.map((cv) => ({
+      id: cv.id,
+      user_id: cv.user_id,
+      name: cv.name,
+      email: cv.email,
+      phone: cv.phone,
+      experience: cv.experience ? JSON.parse(cv.experience) : null,
+      education: cv.education ? JSON.parse(cv.education) : null,
+      skills: cv.skills ? JSON.parse(cv.skills) : null,
+      created_at: cv.created_at,
+      updated_at: cv.updated_at,
+    }));
+
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Serverio klaida' });
+  }
+});
+
 router.post('/', authMiddleware, (req, res) => {
   try {
     const { name, email, phone, experience, education, skills } = req.body;

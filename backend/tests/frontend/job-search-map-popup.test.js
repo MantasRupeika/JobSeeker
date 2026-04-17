@@ -30,7 +30,7 @@ describe('job-search map marker info card popup', () => {
   });
 
   test('clears marker layer immediately before async remapping', () => {
-    const updateMapBodyMatch = script.match(/async function updateMap\(jobs\)\s*\{([\s\S]*?)\n\s*}\n\n\s*function renderJobs/);
+    const updateMapBodyMatch = script.match(/async function updateMap\(jobs\)\s*\{([\s\S]*?)\r?\n\s*}\r?\n\r?\n\s*function renderJobs/);
     expect(updateMapBodyMatch).not.toBeNull();
 
     const updateMapBody = updateMapBodyMatch[1];

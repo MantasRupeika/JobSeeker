@@ -6,7 +6,7 @@ describe('job-search stored coordinate usage', () => {
   const script = fs.readFileSync(scriptPath, 'utf8');
 
   test('prefers stored lat and lng before calling geocoding service', () => {
-    const getCoordinatesMatch = script.match(/async function getJobCoordinates\(job\)\s*\{([\s\S]*?)\n\s*}\n\n\s*async function updateMap/);
+    const getCoordinatesMatch = script.match(/async function getJobCoordinates\(job\)\s*\{([\s\S]*?)\r?\n\s*}\r?\n\r?\n\s*async function updateMap/);
     expect(getCoordinatesMatch).not.toBeNull();
 
     const getCoordinatesBody = getCoordinatesMatch[1];

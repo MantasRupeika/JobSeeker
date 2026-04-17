@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const jobsRoutes = require('./routes/jobs');
 const cvRoutes = require('./routes/cv');
 const savedJobsRoutes = require('./routes/saved-jobs');
+const applicationsRoutes = require('./routes/applications');
 
 const app = express();
 const frontendDir = path.join(__dirname, '..', 'frontend');
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/cv', cvRoutes);
 app.use('/api/saved-jobs', savedJobsRoutes);
+app.use('/api/applications', applicationsRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

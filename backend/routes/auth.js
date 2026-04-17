@@ -78,4 +78,60 @@ router.post('/logout', authMiddleware, (req, res) => {
   }
 });
 
+router.get('/me', authMiddleware, (req, res) => {
+  try {
+    const user = db
+      .prepare('SELECT id, email, name, home_lat, home_lng, created_at FROM users WHERE id = ?')
+      .get(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Vartotojas nerastas' });
+    }
+
+    return res.status(200).json(user);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Serverio klaida' });
+  }
+});
+
+router.put('/profile', authMiddleware, (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    const current = db
+      .prepare('SELECT id, email, name, home_lat, home_lng, created_at FROM users WHERE id = ?')
+      .get(req.user.id);
+
+    if (!current) {
+      return res.status(404).json({ error: 'Vartotojas nerastas' });
+    }
+
+    const nextName = name !== undefined ? String(name).trim() || null : current.name;
+    const nextEmail = email !== undefined ? String(email).trim() : current.email;
+
+    if (!nextEmail) {
+      return res.status(400).json({ error: 'email yra privalomas' });
+    }
+
+    if (nextEmail !== current.email) {
+      const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(nextEmail);
+      if (existing && existing.id !== req.user.id) {
+        return res.status(409).json({ error: 'email jau užregistruotas' });
+      }
+    }
+
+    db.prepare('UPDATE users SET name = ?, email = ? WHERE id = ?').run(nextName, nextEmail, req.user.id);
+
+    const updated = db
+      .prepare('SELECT id, email, name, home_lat, home_lng, created_at FROM users WHERE id = ?')
+      .get(req.user.id);
+
+    return res.status(200).json(updated);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Serverio klaida' });
+  }
+});
+
 module.exports = router;
