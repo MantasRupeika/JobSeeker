@@ -7,7 +7,17 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
-<body class="jobs-page">
+<body class="jobs-page has-site-nav">
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="site-nav__brand" href="job-search.html">JobSeeker</a>
+    <div class="site-nav__links">
+      <a href="job-search.html" aria-current="page">Jobs</a>
+      <a href="saved-jobs.html">Saved Jobs</a>
+      <a href="cv.html">CV</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </nav>
+
   <main class="jobs-main">
     <h1 class="jobs-title">Find Jobs</h1>
     <p class="jobs-subtitle">Browse open roles and compare key details quickly.</p>
