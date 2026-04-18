@@ -117,8 +117,8 @@ describe('GET /api/jobs', () => {
     await request(app).get('/api/jobs').query({ salaryMin: '1500', salaryMax: '3000' });
 
     const dataQuery = mockPrepare.mock.calls[1][0];
-    expect(dataQuery).toContain('COALESCE(salary_max, salary_min) >= ?');
-    expect(dataQuery).toContain('COALESCE(salary_min, salary_max) <= ?');
+    expect(dataQuery).toContain('COALESCE(salary_min, salary_max) >= ?');
+    expect(dataQuery).toContain('COALESCE(salary_max, salary_min) <= ?');
     expect(mockAll).toHaveBeenCalledWith(1500, 3000, 20, 0);
   });
 
