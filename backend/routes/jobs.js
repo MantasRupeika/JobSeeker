@@ -38,12 +38,12 @@ router.get('/', (req, res) => {
     }
 
     if (hasSalaryMin) {
-      where.push('(COALESCE(salary_max, salary_min) IS NOT NULL AND COALESCE(salary_max, salary_min) >= ?)');
+      where.push('(COALESCE(salary_min, salary_max) IS NOT NULL AND COALESCE(salary_min, salary_max) >= ?)');
       params.push(minValue);
     }
 
     if (hasSalaryMax) {
-      where.push('(COALESCE(salary_min, salary_max) IS NOT NULL AND COALESCE(salary_min, salary_max) <= ?)');
+      where.push('(COALESCE(salary_max, salary_min) IS NOT NULL AND COALESCE(salary_max, salary_min) <= ?)');
       params.push(maxValue);
     }
 
