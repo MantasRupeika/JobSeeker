@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobSeeker | Saved Jobs</title>
+  <script>if (!localStorage.getItem('jobseeker_jwt')) { window.location.replace('login.html'); }</script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="auth-page has-site-nav">
@@ -27,6 +28,7 @@
     </section>
   </main>
 
+  <script src="auth.js"></script>
   <script src="saved-jobs.js"></script>
 </body>
 </html>

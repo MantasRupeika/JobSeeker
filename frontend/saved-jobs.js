@@ -20,7 +20,7 @@
   }
 
   if (!token) {
-    setFeedback("You must be logged in to see saved jobs.", "error");
+    window.location.replace("login.html");
     return;
   }
 

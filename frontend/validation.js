@@ -84,7 +84,7 @@
     }
 
     saveToken(data.token);
-    setFeedback("Login successful. JWT saved in local storage.", "success");
+    window.location.href = "job-search.html";
   }
 
   async function handleRegistrationSubmit() {
@@ -109,7 +109,7 @@
     }
 
     saveToken(loginData.token);
-    setFeedback("Registration successful. JWT saved in local storage.", "success");
+    window.location.href = "job-search.html";
   }
 
   function setFieldError(input, message) {

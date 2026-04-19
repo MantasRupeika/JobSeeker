@@ -16,7 +16,7 @@
 
 // ============ CONFIGURATION ============
 const API_BASE_URL = window.location.origin + '/api';
-const TOKEN_KEY = 'token';
+const TOKEN_KEY = 'jobseeker_jwt';
 
 // Utility function to get JWT token from localStorage
 function getAuthToken() {
@@ -462,6 +462,10 @@ document.addEventListener('DOMContentLoaded', () => {
  * 5. Setup tab navigation
  */
 async function initializeProfile() {
+  if (window.AppAuth && !window.AppAuth.requireAuth()) {
+    return;
+  }
+
   try {
     // Load user profile
     const profile = await fetchUserProfile();

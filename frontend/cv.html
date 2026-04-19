@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobSeeker | CV Form</title>
+  <script>if (!localStorage.getItem('jobseeker_jwt')) { window.location.replace('login.html'); }</script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="auth-page has-site-nav">
@@ -101,6 +102,7 @@
       <p class="auth-switch">Back to <a href="profile.html">Profile</a></p>
     </section>
   </main>
+  <script src="auth.js"></script>
   <script>
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);

@@ -42,6 +42,11 @@
     return;
   }
 
+  if (!getToken()) {
+    window.location.replace("login.html");
+    return;
+  }
+
   function getToken() {
     for (var index = 0; index < TOKEN_KEYS.length; index += 1) {
       var token = localStorage.getItem(TOKEN_KEYS[index]);
