@@ -108,6 +108,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get('action') || 'create';
     const cvId = urlParams.get('id');
+    const API_BASE_URL = window.location.origin + '/api';
 
     const form = document.getElementById("cvForm");
     const cvHeading = document.getElementById("cv-heading");
@@ -121,6 +122,46 @@
     const backBtn = document.getElementById("backBtn");
 
     let hasPreview = false;
+
+    function getToken() {
+      return localStorage.getItem('jobseeker_jwt');
+    }
+
+    function getApiHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + getToken()
+      };
+    }
+
+    function normalizeCvForForm(cv) {
+      return {
+        id: cv.id,
+        name: cv.name || '',
+        email: cv.email || '',
+        phone: cv.phone || '',
+        education: Array.isArray(cv.education) ? cv.education.join('\n') : (cv.education || ''),
+        experience: Array.isArray(cv.experience) ? cv.experience.join('\n') : (cv.experience || ''),
+        skills: Array.isArray(cv.skills) ? cv.skills.join(', ') : (cv.skills || ''),
+        created_at: cv.created_at,
+        updated_at: cv.updated_at
+      };
+    }
+
+    function upsertCvInCache(cv) {
+      const raw = localStorage.getItem('userCVs');
+      const cvs = raw ? JSON.parse(raw) : [];
+      const nextCv = normalizeCvForForm(cv);
+      const index = cvs.findIndex(item => String(item.id) === String(nextCv.id));
+
+      if (index === -1) {
+        cvs.unshift(nextCv);
+      } else {
+        cvs[index] = { ...cvs[index], ...nextCv };
+      }
+
+      localStorage.setItem('userCVs', JSON.stringify(cvs));
+    }
 
     // Update page title and heading based on action
     if (action === 'edit') {
@@ -151,26 +192,36 @@
       return String(value).trim() || "-";
     }
 
-    function loadCVForEditing() {
+    async function loadCVForEditing() {
       try {
-        const raw = localStorage.getItem("userCVs");
-        const cvs = raw ? JSON.parse(raw) : [];
-        const cv = cvs.find(c => c.id === cvId);
+        const response = await fetch(`${API_BASE_URL}/cv`, {
+          method: 'GET',
+          headers: getApiHeaders()
+        });
+
+        if (!response.ok) {
+          setFeedback('Failed to load CV from server.', true);
+          return;
+        }
+
+        const cvs = await response.json();
+        localStorage.setItem('userCVs', JSON.stringify(cvs.map(normalizeCvForForm)));
+        const cv = cvs.find(c => String(c.id) === String(cvId));
 
         if (!cv) {
-          setFeedback("CV not found.", true);
+          setFeedback('CV not found.', true);
           return;
         }
 
         // Populate form with CV data
-        document.getElementById("name").value = cv.name || "";
-        document.getElementById("email").value = cv.email || "";
-        document.getElementById("phone").value = cv.phone || "";
-        document.getElementById("education").value = cv.education || "";
-        document.getElementById("experience").value = cv.experience || "";
-        document.getElementById("skills").value = cv.skills || "";
+        document.getElementById('name').value = cv.name || '';
+        document.getElementById('email').value = cv.email || '';
+        document.getElementById('phone').value = cv.phone || '';
+        document.getElementById('education').value = Array.isArray(cv.education) ? cv.education.join('\n') : (cv.education || '');
+        document.getElementById('experience').value = Array.isArray(cv.experience) ? cv.experience.join('\n') : (cv.experience || '');
+        document.getElementById('skills').value = Array.isArray(cv.skills) ? cv.skills.join(', ') : (cv.skills || '');
       } catch (_error) {
-        setFeedback("Error loading CV data.", true);
+        setFeedback('Error loading CV data.', true);
       }
     }
 
@@ -255,7 +306,7 @@
       window.location.href = "profile.html";
     });
 
-    form.addEventListener("submit", function (event) {
+    form.addEventListener("submit", async function (event) {
       event.preventDefault();
 
       if (!hasPreview) {
@@ -273,32 +324,32 @@
       };
 
       try {
-        const raw = localStorage.getItem("userCVs");
-        let cvs = raw ? JSON.parse(raw) : [];
+        const endpoint = action === 'edit' && cvId ? `${API_BASE_URL}/cv/${cvId}` : `${API_BASE_URL}/cv`;
+        const method = action === 'edit' && cvId ? 'PUT' : 'POST';
+        const response = await fetch(endpoint, {
+          method,
+          headers: getApiHeaders(),
+          body: JSON.stringify(cvData)
+        });
 
-        if (action === 'edit' && cvId) {
-          // Update existing CV
-          const index = cvs.findIndex(cv => cv.id === cvId);
-          if (index !== -1) {
-            cvs[index] = {
-              ...cvs[index],
-              ...cvData,
-              updatedAt: new Date().toISOString()
-            };
-          }
-        } else {
-          // Create new CV
-          const newCV = {
-            id: Date.now().toString(),
-            ...cvData,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          cvs.push(newCV);
+        if (!response.ok) {
+          let message = 'Failed to save CV.';
+          try {
+            const payload = await response.json();
+            if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+              message = payload.errors.join(', ');
+            } else if (payload.error) {
+              message = payload.error;
+            }
+          } catch (_parseError) {}
+
+          setFeedback(message, true);
+          return;
         }
 
-        localStorage.setItem("userCVs", JSON.stringify(cvs));
-        setFeedback("CV saved successfully!", false);
+        const savedCv = await response.json();
+        upsertCvInCache(savedCv);
+        setFeedback('CV saved to database successfully!', false);
         
         // Redirect back to profile after 1 second
         setTimeout(() => {
