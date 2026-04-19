@@ -1,0 +1,28 @@
+# DoD ir DoR - Komandos reikalavimų ir užbaigimo kriterijai
+
+## DoR (Definition of Ready)
+
+1. **Reikalavimas yra aprašytas aiškiai**
+   - kiekvienas reikalavimas turi numerį, trumpą aprašymą ir veikimo pavyzdį;
+   - komanda žino, kokia funkcija turi būti įgyvendinta ir kokius duomenis naudos.
+
+2. **Priėmimo kriterijai nustatyti**
+   - yra aiškūs „done" kriterijai: kas laikoma įvykdyta;
+   - pvz. „po prisijungimo matosi mano CV", „galima išsaugoti ir redaguoti CV", „CV sąrašas rodomas profilyje".
+
+---
+## DoD (Definition of Done)
+
+1. **Funkcionalumas veikia**
+   - gyvai veikia pagal reikalavimą;
+   - išbandyta naršyklėje arba API.
+
+2. **Testai praeina**
+   - bent rankinis patikrinimas atliktas;
+   - jei yra automatizuoti testai, jie praeina.
+
+3. **Bug / neliktų darbų sąrašas**
+   - yra įvardinti bent 1–2 žinomi trūkumai arba neatlikti darbai iki DoD;
+   - sąrašas pateiktas komandai.
+
+---
