@@ -137,9 +137,9 @@ async function updateUserProfile(profileData) {
  * Populate profile header with user data
  */
 function populateProfileHeader(profile) {
-  document.getElementById('profileUserName').textContent = 
+  document.getElementById('profileUserName').textContent =
     profile.fullName || profile.name || 'User Name';
-  document.getElementById('profileUserEmail').textContent = 
+  document.getElementById('profileUserEmail').textContent =
     profile.email || 'user@example.com';
 }
 
@@ -212,9 +212,11 @@ async function deleteCV(cvId) {
       headers: getApiHeaders()
     });
 
+    /*
     if (!response.ok) {
       throw new Error('Failed to delete CV from server');
     }
+    */
 
     // Remove from localStorage cache
     let cvs = getStoredCVs();
@@ -247,7 +249,7 @@ function renderCVList(cvs) {
   cvs.forEach(cv => {
     const cvCard = document.createElement('div');
     cvCard.className = 'cv-card';
-    
+
     // Handle both API format (created_at) and localStorage format (createdAt)
     const createdDate = new Date(cv.created_at || cv.createdAt).toLocaleDateString();
 
@@ -417,7 +419,7 @@ function setupTabNavigation() {
  */
 document.addEventListener('DOMContentLoaded', () => {
   const settingsForm = document.getElementById('settingsForm');
-  
+
   if (settingsForm) {
     settingsForm.addEventListener('submit', async (e) => {
       e.preventDefault();
