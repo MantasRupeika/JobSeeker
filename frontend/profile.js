@@ -91,7 +91,12 @@ function getDefaultProfile() {
   return {
     id: null,
     name: 'User Name',
-    email: 'user@example.com'
+    email: 'user@example.com',
+    phone: '',
+    profession: '',
+    city: '',
+    bio: '',
+    notifications: 'all'
   };
 }
 
@@ -144,6 +149,11 @@ function populateProfileHeader(profile) {
 function populateSettingsForm(profile) {
   document.getElementById('fullName').value = profile.fullName || profile.name || '';
   document.getElementById('email').value = profile.email || '';
+  document.getElementById('phone').value = profile.phone || '';
+  document.getElementById('profession').value = profile.profession || '';
+  document.getElementById('city').value = profile.city || '';
+  document.getElementById('bio').value = profile.bio || '';
+  document.getElementById('notifications').value = profile.notifications || 'all';
 }
 
 // ============ CV MANAGEMENT ============
@@ -414,7 +424,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const formData = {
         fullName: document.getElementById('fullName').value,
-        email: document.getElementById('email').value
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        profession: document.getElementById('profession').value,
+        city: document.getElementById('city').value,
+        bio: document.getElementById('bio').value,
+        notifications: document.getElementById('notifications').value
       };
 
       try {
