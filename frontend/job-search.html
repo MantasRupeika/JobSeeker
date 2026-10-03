@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeeker | Job Search</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body class="jobs-page has-site-nav">
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="site-nav__brand" href="job-search.html">JobSeeker</a>
+    <div class="site-nav__links">
+      <a href="job-search.html" aria-current="page">Jobs</a>
+      <a href="ai-matches.html">AI Matches</a>
+      <a href="saved-jobs.html">Saved Jobs</a>
+      <a href="cv.html">CV</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </nav>
+
+  <main class="jobs-main">
+    <h1 class="jobs-title">Find Jobs</h1>
+    <p class="jobs-subtitle">Browse open roles and compare key details quickly.</p>
+
+    <section class="job-filters" aria-labelledby="job-filters-heading">
+      <h2 id="job-filters-heading" class="job-filters-title">JobFilters</h2>
+      <div class="job-filters-grid">
+        <label class="filter-field" for="jobTypeFilter">
+          <span>Job type</span>
+          <select id="jobTypeFilter" name="jobType">
+            <option value="">All types</option>
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+            <option value="contract">Contract</option>
+            <option value="internship">Internship</option>
+          </select>
+        </label>
+
+        <label class="filter-field" for="locationFilter">
+          <span>Location</span>
+          <input id="locationFilter" name="location" type="text" placeholder="e.g. Vilnius">
+        </label>
+
+        <label class="filter-field" for="salaryMinFilter">
+          <span>Salary range from</span>
+          <input id="salaryMinFilter" name="salaryMin" type="number" min="0" step="100" placeholder="e.g. 1500">
+        </label>
+
+        <label class="filter-field" for="salaryMaxFilter">
+          <span>Salary range to</span>
+          <input id="salaryMaxFilter" name="salaryMax" type="number" min="0" step="100" placeholder="e.g. 3500">
+        </label>
+      </div>
+    </section>
+
+    <section class="job-dashboard" aria-label="Job map and results">
+      <section class="job-map-panel" aria-labelledby="job-map-heading">
+        <div class="job-panel-header">
+          <div>
+            <h2 id="job-map-heading" class="job-panel-title">Map view</h2>
+            <p class="job-map-note">The map follows your filters and places markers for jobs with discoverable locations.</p>
+          </div>
+        </div>
+        <div id="jobMap" class="job-map" aria-label="Map of job locations"></div>
+        <p id="jobMapStatus" class="job-map-status" aria-live="polite"></p>
+      </section>
+
+      <section class="job-results-panel" aria-labelledby="job-results-heading">
+        <h2 id="job-results-heading" class="job-panel-title sr-only">Job results</h2>
+        <p id="jobsStatus" class="jobs-status" role="status" aria-live="polite"></p>
+        <p id="jobsCount" class="jobs-count"></p>
+        <section id="jobGrid" class="job-grid" aria-label="Job results"></section>
+      </section>
+    </section>
+
+    <template id="jobCardTemplate">
+      <article class="job-card">
+        <h2 class="job-title"></h2>
+        <p class="job-meta"><span><span class="meta-label">Company:</span> <span data-job="company"></span></span></p>
+        <p class="job-meta"><span><span class="meta-label">Location:</span> <span data-job="location"></span></span></p>
+        <p class="job-meta"><span><span class="meta-label">Salary:</span> <span data-job="salary"></span></span></p>
+        <div class="job-actions">
+          <button type="button" class="save-job-btn" data-job="save-button">Save</button>
+        </div>
+      </article>
+    </template>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="geocoding-service.js"></script>
+  <script src="job-search.js"></script>
+</body>
+</html>

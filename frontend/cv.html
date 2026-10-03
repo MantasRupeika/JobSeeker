@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeeker | CV Form</title>
+  <script>if (!localStorage.getItem('jobseeker_jwt')) { window.location.replace('login.html'); }</script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page has-site-nav">
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="site-nav__brand" href="job-search.html">JobSeeker</a>
+    <div class="site-nav__links">
+      <a href="job-search.html">Jobs</a>
+      <a href="ai-matches.html">AI Matches</a>
+      <a href="saved-jobs.html">Saved Jobs</a>
+      <a href="cv.html" aria-current="page">CV</a>
+      <a href="profile.html">Profile</a>
+    </div>
+  </nav>
+
+  <main class="auth-main">
+    <section class="auth-card cv-card" aria-labelledby="cv-heading">
+      <h1 id="cv-heading">Create Your CV</h1>
+      <p class="auth-subtitle">Fill in all required details to build your CV profile.</p>
+      <p id="cvFeedback" class="form-feedback" role="status" aria-live="polite"></p>
+
+      <form id="cvForm" class="auth-form" action="#" method="post" enctype="multipart/form-data" novalidate>
+        <div class="form-row">
+          <label for="name">Full Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" required>
+        </div>
+
+        <div class="form-row">
+          <label for="email">Email Address</label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="form-row">
+          <label for="phone">Phone Number</label>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="numeric" pattern="[0-9]+" title="Phone number must contain numbers only" required>
+        </div>
+
+        <div class="form-row">
+          <label for="education">Education</label>
+          <textarea id="education" name="education" rows="4" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="experience">Work Experience</label>
+          <textarea id="experience" name="experience" rows="5" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="skills">Skills</label>
+          <textarea id="skills" name="skills" rows="4" placeholder="Example: JavaScript, SQL, React" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="cvFile">Upload CV File (PDF or DOCX, optional)</label>
+          <input id="cvFile" name="cvFile" type="file" accept=".pdf,.doc,.docx">
+        </div>
+
+        <div class="form-row">
+          <button id="previewBtn" class="secondary-btn" type="button">Preview CV</button>
+        </div>
+
+        <div class="form-row">
+          <button id="submitBtn" type="submit">Save CV</button>
+          <button id="backBtn" class="secondary-btn" type="button">Back</button>
+        </div>
+      </form>
+
+      <section id="cvPreview" class="cv-preview-modal" aria-labelledby="cv-preview-heading" hidden>
+        <div class="cv-preview-panel" role="dialog" aria-modal="true" aria-labelledby="cv-preview-heading">
+          <button id="closePreviewBtn" class="close-preview-btn" type="button" aria-label="Close preview">x</button>
+          <h2 id="cv-preview-heading">CV Preview</h2>
+          <div class="cv-preview-grid">
+            <p><strong>Name:</strong> <span id="previewName">-</span></p>
+            <p><strong>Email:</strong> <span id="previewEmail">-</span></p>
+            <p><strong>Phone:</strong> <span id="previewPhone">-</span></p>
+          </div>
+          <div class="cv-preview-block">
+            <h3>Education</h3>
+            <p id="previewEducation">-</p>
+          </div>
+          <div class="cv-preview-block">
+            <h3>Work Experience</h3>
+            <p id="previewExperience">-</p>
+          </div>
+          <div class="cv-preview-block">
+            <h3>Skills</h3>
+            <p id="previewSkills">-</p>
+          </div>
+          <div class="cv-preview-block">
+            <h3>File</h3>
+            <p id="previewFile">-</p>
+          </div>
+        </div>
+      </section>
+
+      <p class="auth-switch">Back to <a href="profile.html">Profile</a></p>
+    </section>
+  </main>
+  <script src="auth.js"></script>
+  <script>
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action') || 'create';
+    const cvId = urlParams.get('id');
+    const API_BASE_URL = window.location.origin + '/api';
+
+    const form = document.getElementById("cvForm");
+    const cvHeading = document.getElementById("cv-heading");
+    const cvSubtitle = document.querySelector(".auth-subtitle");
+    const previewBtn = document.getElementById("previewBtn");
+    const previewContainer = document.getElementById("cvPreview");
+    const closePreviewBtn = document.getElementById("closePreviewBtn");
+    const phoneInput = document.getElementById("phone");
+    const feedback = document.getElementById("cvFeedback");
+    const submitBtn = document.getElementById("submitBtn");
+    const backBtn = document.getElementById("backBtn");
+
+    let hasPreview = false;
+
+    function getToken() {
+      return localStorage.getItem('jobseeker_jwt');
+    }
+
+    function getApiHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + getToken()
+      };
+    }
+
+    function normalizeCvForForm(cv) {
+      return {
+        id: cv.id,
+        name: cv.name || '',
+        email: cv.email || '',
+        phone: cv.phone || '',
+        education: Array.isArray(cv.education) ? cv.education.join('\n') : (cv.education || ''),
+        experience: Array.isArray(cv.experience) ? cv.experience.join('\n') : (cv.experience || ''),
+        skills: Array.isArray(cv.skills) ? cv.skills.join(', ') : (cv.skills || ''),
+        created_at: cv.created_at,
+        updated_at: cv.updated_at
+      };
+    }
+
+    function upsertCvInCache(cv) {
+      const raw = localStorage.getItem('userCVs');
+      const cvs = raw ? JSON.parse(raw) : [];
+      const nextCv = normalizeCvForForm(cv);
+      const index = cvs.findIndex(item => String(item.id) === String(nextCv.id));
+
+      if (index === -1) {
+        cvs.unshift(nextCv);
+      } else {
+        cvs[index] = { ...cvs[index], ...nextCv };
+      }
+
+      localStorage.setItem('userCVs', JSON.stringify(cvs));
+    }
+
+    // Update page title and heading based on action
+    if (action === 'edit') {
+      cvHeading.textContent = "Update Your CV";
+      cvSubtitle.textContent = "Edit your CV details below.";
+      submitBtn.textContent = "Update CV";
+      loadCVForEditing();
+    } else {
+      cvHeading.textContent = "Create Your CV";
+      cvSubtitle.textContent = "Fill in all required details to build your CV profile.";
+      submitBtn.textContent = "Save CV";
+    }
+
+    function setFeedback(message, isError) {
+      if (!feedback) return;
+      feedback.textContent = message || "";
+      feedback.classList.remove("is-error", "is-success");
+
+      if (isError) {
+        feedback.classList.add("is-error");
+      } else if (message) {
+        feedback.classList.add("is-success");
+      }
+    }
+
+    function valueOrFallback(value) {
+      if (!value) return "-";
+      return String(value).trim() || "-";
+    }
+
+    async function loadCVForEditing() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/cv`, {
+          method: 'GET',
+          headers: getApiHeaders()
+        });
+
+        if (!response.ok) {
+          setFeedback('Failed to load CV from server.', true);
+          return;
+        }
+
+        const cvs = await response.json();
+        localStorage.setItem('userCVs', JSON.stringify(cvs.map(normalizeCvForForm)));
+        const cv = cvs.find(c => String(c.id) === String(cvId));
+
+        if (!cv) {
+          setFeedback('CV not found.', true);
+          return;
+        }
+
+        // Populate form with CV data
+        document.getElementById('name').value = cv.name || '';
+        document.getElementById('email').value = cv.email || '';
+        document.getElementById('phone').value = cv.phone || '';
+        document.getElementById('education').value = Array.isArray(cv.education) ? cv.education.join('\n') : (cv.education || '');
+        document.getElementById('experience').value = Array.isArray(cv.experience) ? cv.experience.join('\n') : (cv.experience || '');
+        document.getElementById('skills').value = Array.isArray(cv.skills) ? cv.skills.join(', ') : (cv.skills || '');
+      } catch (_error) {
+        setFeedback('Error loading CV data.', true);
+      }
+    }
+
+    function renderPreview() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const phone = document.getElementById("phone").value;
+      const education = document.getElementById("education").value;
+      const experience = document.getElementById("experience").value;
+      const skills = document.getElementById("skills").value;
+      const fileInput = document.getElementById("cvFile");
+
+      document.getElementById("previewName").textContent = valueOrFallback(name);
+      document.getElementById("previewEmail").textContent = valueOrFallback(email);
+      document.getElementById("previewPhone").textContent = valueOrFallback(phone);
+      document.getElementById("previewEducation").textContent = valueOrFallback(education);
+      document.getElementById("previewExperience").textContent = valueOrFallback(experience);
+      document.getElementById("previewSkills").textContent = valueOrFallback(skills);
+      document.getElementById("previewFile").textContent =
+        fileInput && fileInput.files && fileInput.files[0]
+          ? fileInput.files[0].name
+          : "-";
+
+      previewContainer.hidden = false;
+      hasPreview = true;
+      submitBtn.disabled = false;
+
+      setFeedback("Preview generated. You can now save your CV.", false);
+    }
+
+    function closePreview() {
+      previewContainer.hidden = true;
+    }
+
+    function invalidatePreview() {
+      hasPreview = false;
+      previewContainer.hidden = true;
+      submitBtn.disabled = true;
+      if (feedback && feedback.classList.contains("is-success")) {
+        setFeedback("Form changed. Generate preview again before saving.", true);
+      }
+    }
+
+    submitBtn.disabled = true;
+
+    if (phoneInput) {
+      phoneInput.addEventListener("input", function () {
+        phoneInput.value = phoneInput.value.replace(/\D+/g, "");
+      });
+    }
+
+    previewBtn.addEventListener("click", function () {
+      if (!form.checkValidity()) {
+        setFeedback("Fill all required fields before previewing.", true);
+        return;
+      }
+      renderPreview();
+    });
+
+    if (closePreviewBtn) {
+      closePreviewBtn.addEventListener("click", closePreview);
+    }
+
+    previewContainer.addEventListener("click", function (event) {
+      if (event.target === previewContainer) {
+        closePreview();
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !previewContainer.hidden) {
+        closePreview();
+      }
+    });
+
+    form.querySelectorAll("input, textarea").forEach(function (field) {
+      field.addEventListener("input", invalidatePreview);
+      field.addEventListener("change", invalidatePreview);
+    });
+
+    backBtn.addEventListener("click", function () {
+      window.location.href = "profile.html";
+    });
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      if (!hasPreview) {
+        setFeedback("Generate preview before saving your CV.", true);
+        return;
+      }
+
+      const cvData = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        education: document.getElementById("education").value,
+        experience: document.getElementById("experience").value,
+        skills: document.getElementById("skills").value
+      };
+
+      try {
+        const endpoint = action === 'edit' && cvId ? `${API_BASE_URL}/cv/${cvId}` : `${API_BASE_URL}/cv`;
+        const method = action === 'edit' && cvId ? 'PUT' : 'POST';
+        const response = await fetch(endpoint, {
+          method,
+          headers: getApiHeaders(),
+          body: JSON.stringify(cvData)
+        });
+
+        if (!response.ok) {
+          let message = 'Failed to save CV.';
+          try {
+            const payload = await response.json();
+            if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+              message = payload.errors.join(', ');
+            } else if (payload.error) {
+              message = payload.error;
+            }
+          } catch (_parseError) {}
+
+          setFeedback(message, true);
+          return;
+        }
+
+        const savedCv = await response.json();
+        upsertCvInCache(savedCv);
+        setFeedback('CV saved to database successfully!', false);
+        
+        // Redirect back to profile after 1 second
+        setTimeout(() => {
+          window.location.href = "profile.html";
+        }, 1000);
+      } catch (_error) {
+        setFeedback("Error saving CV.", true);
+      }
+    });
+  </script>
+</body>
+</html>

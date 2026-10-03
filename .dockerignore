@@ -1,0 +1,11 @@
+.git
+.gitignore
+backend/node_modules
+backend/data
+backend/.env
+Scraper/.pytest_cache
+Scraper/__pycache__
+Scraper/tests/__pycache__
+**/__pycache__
+**/*.pyc
+cvbankas_jobs.json
